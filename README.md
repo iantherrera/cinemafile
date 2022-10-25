@@ -1,70 +1,48 @@
-# Getting Started with Create React App
+# cinemafile
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+by Ian Herrera
+10/22
 
-## Available Scripts
+[Project Notes & Wireframes](https://drive.google.com/file/d/194O0oHOlF9V_1GsRv403Ydp8lIth-PZk/view?usp=sharing)
 
+Clone repository to run locally
 In the project directory, you can run:
 
-### `npm start`
+```
+npm start
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Code Louisville Capstone Project
+### OVERVIEW:
+React application allowing registered users to access and customize their own saved list of the top 25 movies of all time (according to the AFI).
+- Users are required to register and log in to access application.
+- Movie cards are rendered in a scrollable, responsive grid with a poster graphic and other metadata fetched from external API’s.
+- Movie card gallery view is the default, but users can view data and options in a compact list.
+- Users can favorite or delete movie entries and add a check to any film that has been viewed.
+- User data for login, password, and customized movie list will be saved to an external database and persist between user sessions.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### PROJECT FEATURE REQUIREMENT LIST:
 
-### `npm test`
+#### SECTION 1 :
+[x]  Use arrays, objects, sets or maps to store and retrieve information that is displayed in your app.
+- Arrays, objects, and maps will be used for customized movie lists and populate the information rendered for each movie entry.
+[x]  Analyze data that is stored in arrays, objects, sets or maps and display information about it in your app.
+- Metadata for each movie will be filtered for desired data and displayed in a gallery or list format.
+[x]  Use a regular expression to validate user input and either prevent the invalid input or inform the user about it (in all cases prevent invalid input from being stored or saved).
+- Registration and login forms will utilize regular expressions for validation before posting and alert users to invalid input.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### SECTION 2:
+[x]  Retrieve data from a third-party API and use it to display something within your app.
+- Metadata retrieved from a third-party API about each movie entry will be displayed on its gallery card or in its list-view data.
+[x]  Create a form and store the submitted values using an external API (e.g. a contact form, survey, etc).
+- User registration form data will be saved on an external API.
+[x]  Persist data to an external API and make the stored data accessible in your app (including after reload/refresh).
+- User profile data from registration will be persistent on an external API for login confirmation and contain customized user-associated movie list data.
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+#### SECTION 3: OPTIONAL
+[x]  Create a node.js web server using a modern framework such as Express.js or Fastify.  Serve at least one route that your app uses (must serve more than just the index.html file).
+- Application will utilize a node server built with Express.
+[x]  Interact with a database to store and retrieve information (e.g. MySQL, MongoDB, etc).
+- Application will utilize MongoDB for data storage.
+[x]  Develop your project using a common JavaScript framework such as React, Angular, or Vue.
+- Front-end application will be developed with React.
