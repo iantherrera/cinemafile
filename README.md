@@ -6,7 +6,17 @@ by Ian Herrera
 [Project Notes & Wireframes](https://drive.google.com/file/d/194O0oHOlF9V_1GsRv403Ydp8lIth-PZk/view?usp=sharing)
 
 Clone repository to run locally
-In the project directory, you can run:
+To start backend server, change from project directory to server directory:
+```
+cd server
+```
+```
+node index.js
+```
+After startiing server, return to project directory root to start React frontend application:
+```
+cd ..
+```
 
 ```
 npm start
