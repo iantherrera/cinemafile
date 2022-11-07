@@ -6,7 +6,8 @@ by Ian Herrera
 
 [Project Notes & Wireframes](https://drive.google.com/file/d/194O0oHOlF9V_1GsRv403Ydp8lIth-PZk/view?usp=sharing)
 
-Clone repository to run locally
+Clone repository to run locally.
+
 To start backend server, change from project directory to server directory:
 ```
 cd server
