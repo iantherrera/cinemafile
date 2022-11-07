@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Route, Routes } from "react-router-dom";
 
 function App() {
   // Global variables
@@ -48,9 +49,9 @@ function App() {
 
   // Initialize userlist for new users from local json file with imdb id's & movie ranks
   const movieIdRank = require("./movieIdRank.json");
-  let userList = [];
 
-  if (userList.length === 0) {
+  if (typeof userList === 'undefined' || !Array.isArray(userList)) {
+    var userList = [];
     userList = movieIdRank;
     userList.map((setChecked) =>
       setChecked.checked = false)
@@ -58,6 +59,7 @@ function App() {
       setFavorite.favorite = false)
     addData();
   }
+
   // Populate metadata from tmdb external API for each imdb id in initialized list
   async function addData() {
     for (let i = 0; i < userList.length; i++) {
@@ -69,6 +71,7 @@ function App() {
       userList[i].overview = movieData.overview
     }
   }
+
   // Movie Card rendering component
   function MovieCards(props) {
     console.log(userList);
