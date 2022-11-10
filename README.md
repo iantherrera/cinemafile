@@ -8,20 +8,21 @@ by Ian Herrera
 
 Clone repository to run locally.
 
-To start backend server, change from project directory to server directory:
+From /cinefile root directory, move to /server directory to start server:
 ```
 cd server
 ```
 ```
 node index.js
 ```
-After startiing server, return to project directory root to start React frontend application:
+After startiing server, move to client directory to start React client application:
 ```
-cd ..
+cd ../client
 ```
 ```
 npm start
 ```
+Application can be launched in browser on http://localhost:3000/
 
 ## Code Louisville Capstone Project
 ### OVERVIEW:

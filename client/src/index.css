@@ -1,3 +1,8 @@
+#colors {
+  background-color: rgba(13, 27, 53, .65);
+  color: rgba(235 220 79 / 86%);
+}
+
 * {
   box-sizing: border-box;
   font-family: 'Josefin Sans', sans-serif;
@@ -13,14 +18,20 @@
   z-index: -2;
 }
 
+.bubbleFrame {
+  display: flex;
+  background-color: rgba(235 220 79 / 86%);
+  border-radius: 20px;
+}
+
 header {
   display: flex;
   flex-direction: column;
   flex-basis: 100%;
   width: 100%;
   min-height: 1em;
-  background-color: rgba(13, 27, 53, .5);
-  color: #caf0f8ff;
+  background-color: rgba(13, 27, 53, .8);
+  color: rgba(13, 27, 53, 1);
   padding: 1em;
   margin-bottom: 1em;
   position: sticky;
@@ -28,12 +39,21 @@ header {
 }
 
 #pageTitleContainer {
-  height: 10vh;
+  display: flex;
+  height: 5em;
+  width: 100%;
+  justify-content: center;
+  margin: auto;
+  margin-bottom: 1em;
 }
 
 #pageTitle {
   display: flex;
   justify-content: center;
+  align-self: center;
+  padding: .25em .5em;
+  font-size: 4em;
+  font-weight: 800;
 }
 
 nav ul {
@@ -42,6 +62,22 @@ nav ul {
   justify-content: space-between;
   list-style-type: none;
   padding: 0 1em;
+}
+
+nav li {
+  padding: .75em;
+}
+
+#nav {
+  padding: 1em;
+  background-color: rgba(0, 0, 0, 0.9);
+
+  width: 100%;
+}
+
+#navList {
+  font-weight: 600;
+  font-size: 1em;
 }
 
 #movieCardsContainer {
@@ -57,30 +93,62 @@ nav ul {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  background-color: rgba(202, 240, 248, .7);
+  background-color: rgba(235 220 79 / 86%);
   align-self: center;
   height: 60vh;
   min-width: 300px;
   overflow: auto;
   margin: auto;
   padding: .3em;
-  border-radius: 20px;
   border-bottom: 3px solid black;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 .cardOptionsContainer {
   display: flex;
+  justify-content: space-between;
+  padding: 1em;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: rgba(235 220 79 / 86%);
 }
 
 .rankTitleYearContainer {
   display: flex;
+  justify-content: space-between;
+}
+
+.movieRank {
+  padding: .5em;
+  font-size: 1.5em;
+  margin: auto;
+  background-color: rgba(255, 255, 255, .75);
+  border: solid black;
+}
+
+.movieTitleYearContainer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1em;
+}
+
+.movieTitle {
+  font-size: 1.5em;
+  padding: .5em;
+  margin: auto;
+  background-color: rgba(255, 255, 255, .75);
+}
+
+.movieYear {
+  margin: auto;
+  padding: 1em 0 1em 1em;
 }
 
 .moviePosterContainer {
   justify-content: center;
   margin: auto;
   max-width: 100%;
-
 }
 
 .posterImg {
@@ -88,6 +156,12 @@ nav ul {
   max-width: 100%;
   border-radius: 5px;
   object-fit: contain;
+}
+
+.movieSynopsis {
+  margin: 1em 0;
+  overflow: auto;
+  padding: 1em;
 }
 
 #titleContainer {
@@ -99,10 +173,6 @@ nav ul {
   justify-items: center;
   justify-content: center;
   transition: font-size 300ms;
-}
-
-#pageTitle {
-  text-align: center;
 }
 
 @media screen and (min-width: 600px) {
