@@ -13,7 +13,7 @@ From /cinefile root directory, move to /server directory to start server:
 cd server
 ```
 ```
-node index.js
+node server
 ```
 After startiing server, move to client directory to start React client application:
 ```

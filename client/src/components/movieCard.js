@@ -24,14 +24,25 @@ const MovieCard = (props) => (
           <input
             type="checkbox"
             defaultChecked={props.metaData.checked}
-            onClick={() => {
-              props.toggleViewed(props.metaData);
+            onChange={() => {
+              props.toggleViewed(props.metaData.id);
             }}
           />
           Viewed
         </label>
       </div>
-      <div className='favoriteButton'>favorite</div>
+      <div className='favoriteButton'>
+        <label>
+          <input
+            type="checkbox"
+            defaultChecked={props.metaData.favorite}
+            onChange={() => {
+              props.toggleFavorite(props.metaData.id);
+            }}
+          />
+          Favorite
+        </label>
+      </div>
       <div className='deleteCardContainer'>
         <button className="button-link" type="button"
           onClick={() => {
@@ -114,18 +125,23 @@ export default function MovieCards() {
   }
 
   // TODO Method to toggle viewed status and update user data
-
   async function toggleViewed(id) {
     console.log(id);
     const checked = userData.movieData.find(movie => movie.id === id).checked;
     const toggleCheck = !checked;
-    console.log(toggleCheck);
-
+    userData.movieData.find(movie => movie.id === id).checked = toggleCheck;
+    setUserData(userData);
+    await updateUserDB(userData._id);
   }
 
   // TODO Method to toggle favorite and update user data
-  async function toggleFavorite() {
-
+  async function toggleFavorite(id) {
+    console.log(id);
+    const favorite = userData.movieData.find(movie => movie.id === id).favorite;
+    const toggleFavorite = !favorite;
+    userData.movieData.find(movie => movie.id === id).favorite = toggleFavorite;
+    setUserData(userData);
+    await updateUserDB(userData._id);
   }
 
   // This method will delete a movie entry
@@ -148,8 +164,8 @@ export default function MovieCards() {
       return (
         <MovieCard
           metaData={metaData}
-          toggleViewed={() => toggleViewed(metaData.checked)}
-          /*           favorite={favorite} */
+          toggleViewed={() => toggleViewed(metaData.id)}
+          toggleFavorite={() => toggleFavorite(metaData.id)}
           deleteMovie={() => deleteMovie(metaData.id)}
           key={metaData.imdbId}
         />
