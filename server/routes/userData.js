@@ -41,15 +41,13 @@ userDataRoutes.route("/userData/add").post(function (req, response) {
     });
 });
 
-// Update a record by id.
+// Update user's movie data by id.
 userDataRoutes.route("/update/:id").post(function (req, response) {
     let db_connect = dbObj.getDb();
     let myquery = { _id: ObjectId(req.params.id) };
     let newvalues = {
         $set: {
-            /*          name: req.body.name,
-                        position: req.body.position,
-                        level: req.body.level, */
+            movieData: req.body.movieData,
         },
     };
     db_connect

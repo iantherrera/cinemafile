@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 
+const [isLoggedIn, setIsLoggedIn] = useState(false);
 // Login form
 function LogInForm() {
     const [username, setUsername] = useState("");
