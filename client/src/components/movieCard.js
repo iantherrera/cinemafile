@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
-const tmdbKey = "11039f14945ee0f2e0036d42b77c687b"
 // Test user & db schema:
 /* 
 _id: 6369d823852305533b133048
@@ -21,15 +19,35 @@ movieData: []
 const MovieCard = (props) => (
   <div className="movieCard">
     <div className='cardOptionsContainer'>
-      <div className='viewedCheckContainer'>viewed</div>
+      <div className='viewedCheckContainer'>
+        <label>
+          <input
+            type="checkbox"
+            defaultChecked={props.metaData.checked}
+            onClick={() => {
+              props.toggleViewed(props.metaData);
+            }}
+          />
+          Viewed
+        </label>
+      </div>
       <div className='favoriteButton'>favorite</div>
-      <div className='deleteCardContainer'>delete</div>
+      <div className='deleteCardContainer'>
+        <button className="button-link" type="button"
+          onClick={() => {
+            props.deleteMovie(props.metaData.id);
+            console.log(props.metaData.id)
+          }}
+        >
+          Delete
+        </button>
+      </div>
     </div>
     <div className='rankTitleYearContainer'>
       <div className="movieRank">{props.metaData.rank}</div>
       <div className='movieTitleYearContainer'>
         <div className='movieTitle'>{props.metaData.movieTitle}</div>
-        <div className='movieYear'>2022</div>
+        <div className='movieYear'>{props.metaData.year}</div>
       </div>
     </div>
     <div className='moviePosterContainer'>
@@ -44,13 +62,16 @@ const MovieCard = (props) => (
 // Functional component to render movie cards in app
 export default function MovieCards() {
   const [userData, setUserData] = useState([]);
+  const [movieData, setMovieData] = useState([]);
 
-  const initMovieData = require("../initData/initMovieData.json");
+  /*   const initMovieData = require("../initData/initMovieData.json"); */
+
+  const userId = '6369d823852305533b133048';
 
   // Method to fetch user data from database
   useEffect(() => {
     async function getUserData() {
-      const response = await fetch(`http://localhost:5000/userData/`);
+      const response = await fetch(`http://localhost:5000/userData/${userId}`);
 
       if (!response.ok) {
         const message = `An error occurred: ${response.statusText}`;
@@ -59,73 +80,78 @@ export default function MovieCards() {
       }
 
       const userData = await response.json();
-
       setUserData(userData);
+      const movieData = userData.movieData;
+      setMovieData(movieData);
+      console.log(userData);
     }
+
     getUserData();
 
     return;
-  }, [userData.movieData])
+  }, [movieData.length]);
 
   // Initialize movie list for new users
-  if (typeof userData.movieData == "undefined") {
-    userData.movieData = initMovieData;
+  /*   if (typeof userData.movieData === "undefined" || userData.movieData.length === 0) {
+      userData.movieData = initMovieData;
+      updateUserDB(userData._id);
+    } */
 
-    userData.movieData.map((setChecked) =>
-      setChecked.checked = false)
-    userData.movieData.map((setFavorite) =>
-      setFavorite.favorite = false)
+  // Method to update user data in server
+  // This will send a post request to update the data in the database.
+  async function updateUserDB(id) {
+    console.log(userData);
+    const updatedUser = userData;
 
-    addData();
+    await fetch(`http://localhost:5000/update/${id}`, {
+      method: "POST",
+      body: JSON.stringify(updatedUser),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    });
 
-    // Method to populate metadata from external tmdb API for each ID in initialized list
-    async function addData() {
-      for (let i = 0; i < initMovieData.length; i++) {
-        const response = await fetch(`https://api.themoviedb.org/3/movie/${initMovieData[i].imdbId}?api_key=${tmdbKey}&language=en-US`);
-
-        if (!response.ok) {
-          const message = `An error occurred: ${response.statusText}`;
-          window.alert(message);
-          return;
-        }
-
-        const metaData = await response.json();
-
-        userData.movieData[i].movieTitle = metaData.title;
-        userData.movieData[i].posterPath = metaData.poster_path;
-        userData.movieData[i].overview = metaData.overview;
-      }
-    }
-
-    setUserData(userData);
   }
 
   // TODO Method to toggle viewed status and update user data
 
-  // TODO Method to toggle favorite and update user data
+  async function toggleViewed(id) {
+    console.log(id);
+    const checked = userData.movieData.find(movie => movie.id === id).checked;
+    const toggleCheck = !checked;
+    console.log(toggleCheck);
 
+  }
+
+  // TODO Method to toggle favorite and update user data
+  async function toggleFavorite() {
+
+  }
 
   // This method will delete a movie entry
   async function deleteMovie(id) {
-    await fetch(`http://localhost:5000/${id}`, {
-      method: "DELETE"
-    });
+    const newMovieData = userData.movieData.filter((movies) => movies.id !== id);
+    userData.movieData = newMovieData;
+    await updateUserDB(userData._id);
 
-    const newUserData = userData.movieData.filter((el) => el._id !== id);
-    setUserData(newUserData);
+    setUserData(userData);
+    setMovieData(newMovieData);
+    console.log(userData);
   }
 
   // Method to map out movie data & populate metadata for each movie card
   function movieCards() {
-    const movieMetaData = userData.movieData;
-    return movieMetaData.map((metaData, index) => {
+    console.log(userData.movieData);
+    const movieMetaData = movieData;
+    return movieMetaData.map((metaData) => {
+      metaData.id = metaData.imdbId;
       return (
         <MovieCard
           metaData={metaData}
-          /*           viewed={viewed}
-                    favorite={favorite} */
-          deleteMovie={() => deleteMovie(userData.movieData.rank)}
-          key={index}
+          toggleViewed={() => toggleViewed(metaData.checked)}
+          /*           favorite={favorite} */
+          deleteMovie={() => deleteMovie(metaData.id)}
+          key={metaData.imdbId}
         />
       );
     });
