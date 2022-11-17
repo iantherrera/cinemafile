@@ -1,6 +1,11 @@
 #colors {
   background-color: rgba(13, 27, 53, .65);
   color: rgba(235 220 79 / 86%);
+
+  color: rgb(110, 33, 66);
+  color: rgb(148, 56, 85);
+  color: rgb(225, 99, 99);
+  color: rgb(255, 214, 146);
 }
 
 * {
@@ -15,13 +20,8 @@
   background: url("./images/bgImg.jpg") center center no-repeat;
   background-size: cover;
   position: fixed;
+  top: 0px;
   z-index: -2;
-}
-
-.bubbleFrame {
-  display: flex;
-  background-color: rgba(235 220 79 / 86%);
-  border-radius: 20px;
 }
 
 header {
@@ -30,24 +30,27 @@ header {
   flex-basis: 100%;
   width: 100%;
   min-height: 1em;
-  background-color: rgba(13, 27, 53, .8);
-  color: rgba(13, 27, 53, 1);
+  background-color: rgb(225, 99, 99);
+  color: rgb(110, 33, 66);
   padding: 1em;
   margin-bottom: 1em;
   position: sticky;
   top: 0;
 }
 
-#pageTitleContainer {
+#siteTitleContainer {
   display: flex;
   height: 5em;
   width: 100%;
   justify-content: center;
   margin: auto;
-  margin-bottom: 1em;
+  margin-bottom: 0;
+  background-color: rgb(255, 214, 146);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
 
-#pageTitle {
+#siteTitle {
   display: flex;
   justify-content: center;
   align-self: center;
@@ -56,28 +59,15 @@ header {
   font-weight: 800;
 }
 
-nav ul {
+nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
   list-style-type: none;
-  padding: 0 1em;
-}
-
-nav li {
-  padding: .75em;
-}
-
-#nav {
   padding: 1em;
-  background-color: rgba(0, 0, 0, 0.9);
-
-  width: 100%;
-}
-
-#navList {
-  font-weight: 600;
-  font-size: 1em;
+  background-color: rgb(110, 33, 66);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 #movieCardsContainer {
@@ -93,54 +83,58 @@ nav li {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  background-color: rgba(235 220 79 / 86%);
+  background-color: rgb(255, 214, 146);
   align-self: center;
   height: 60vh;
   min-width: 300px;
   overflow: auto;
   margin: auto;
   padding: .3em;
-  border-bottom: 3px solid black;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-radius: 20px;
 }
 
 .cardOptionsContainer {
   display: flex;
   justify-content: space-between;
   padding: 1em;
-  background-color: rgba(0, 0, 0, 0.9);
-  color: rgba(235 220 79 / 86%);
+  background-color: rgb(148, 56, 85);
+  color: rgba(255, 255, 255, .9);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
 
-.rankTitleYearContainer {
+label input {
+  margin-right: .3em;
+}
+
+.movieInfoContainer {
   display: flex;
   justify-content: space-between;
 }
 
-.movieRank {
+.rank {
   padding: .5em;
   font-size: 1.5em;
   margin: auto;
-  background-color: rgba(255, 255, 255, .75);
+  background-color: rgba(255, 255, 255, .9);
   border: solid black;
 }
 
-.movieTitleYearContainer {
+.titleYearContainer {
   display: flex;
   justify-content: space-between;
   width: 100%;
   padding: 1em;
 }
 
-.movieTitle {
+.title {
   font-size: 1.5em;
   padding: .5em;
   margin: auto;
-  background-color: rgba(255, 255, 255, .75);
+  background-color: rgba(255, 255, 255, .9);
 }
 
-.movieYear {
+.year {
   margin: auto;
   padding: 1em 0 1em 1em;
 }
@@ -158,21 +152,35 @@ nav li {
   object-fit: contain;
 }
 
-.movieSynopsis {
-  margin: 1em 0;
+.synopsis {
+  margin-top: 1em;
   overflow: auto;
   padding: 1em;
+  background-color: rgba(255, 255, 255, .9);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
-#titleContainer {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-items: center;
-  justify-content: center;
-  transition: font-size 300ms;
+/* Custom scrollbars for text sections */
+/* Custom scrollbar for Firefox */
+.synopsis {
+  overflow-y: auto;
+  scrollbar-color: rgb(148, 56, 85) rgba(255, 255, 255, 1);
+  scrollbar-width: thin;
+}
+
+/* Custom scrollbar for all other browsers */
+.synopsis::-webkit-scrollbar {
+  width: .7em;
+}
+
+.synopsis::-webkit-scrollbar-thumb {
+  height: .5em;
+  background: rgb(148, 56, 85);
+}
+
+.synopsis::-webkit-scrollbar {
+  background-color: rgba(255, 255, 255, 1);
 }
 
 @media screen and (min-width: 600px) {
