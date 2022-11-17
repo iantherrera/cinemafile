@@ -169,12 +169,12 @@ export default function MovieCards() {
           const currentListView = !isListView;
           setIsListView(isListView => !isListView);
           if (currentListView) {
-            const movieListContainers = document.querySelectorAll("#listViewContainer *");
+            const movieListContainers = document.querySelectorAll("#movieCardsContainer *");
             for (let i = 0; i < movieListContainers.length; i++) {
               movieListContainers[i].classList.add("listContainer");
             }
           } else {
-            const movieListContainers = document.querySelectorAll("#movieCardsContainer *");
+            const movieListContainers = document.querySelectorAll("#listViewContainer *");
             for (let i = 0; i < movieListContainers.length; i++) {
               movieListContainers[i].classList.remove("listContainer");
             }
@@ -186,7 +186,7 @@ export default function MovieCards() {
     )
   }
 
-  // List reset button
+  // Movie list reset button
   function resetButton() {
     return (
       <button id="resetButton" className="navButton" type="button"
@@ -199,7 +199,7 @@ export default function MovieCards() {
     )
   }
 
-  // List reset
+  // Reset movie list
   async function resetList() {
     userData.movieData = initMovieData;
     await updateUserDB(userData._id);

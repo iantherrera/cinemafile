@@ -83,9 +83,9 @@ nav {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  background-color: rgb(255, 214, 146);
+  background-color: rgb(225, 99, 99);
   align-self: center;
-  height: 60vh;
+  height: 50vh;
   min-width: 300px;
   overflow: auto;
   margin: auto;
@@ -110,52 +110,59 @@ label input {
 .movieInfoContainer {
   display: flex;
   justify-content: space-between;
+  padding: .5em;
+  background-color: rgba(255, 255, 255, .9);
 }
 
 .rank {
   padding: .5em;
-  font-size: 1.5em;
+  font-size: 1em;
   margin: auto;
   background-color: rgba(255, 255, 255, .9);
-  border: solid black;
+  border: solid rgb(110, 33, 66);
+  border-radius: 10px;
 }
 
 .titleYearContainer {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  padding: 1em;
+  background-color: rgba(255, 255, 255, .9);
 }
 
 .title {
-  font-size: 1.5em;
-  padding: .5em;
+  font-size: 1em;
   margin: auto;
   background-color: rgba(255, 255, 255, .9);
 }
 
 .year {
   margin: auto;
-  padding: 1em 0 1em 1em;
+  font-size: 1em;
 }
 
 .moviePosterContainer {
+  display: flex;
   justify-content: center;
-  margin: auto;
   max-width: 100%;
+  padding: .5em;
+  background-color: rgb(255, 214, 146);
 }
 
 .posterImg {
-  max-height: 300px;
+  align-self: center;
+  max-height: 200px;
   max-width: 100%;
   border-radius: 5px;
   object-fit: contain;
 }
 
 .synopsis {
-  margin-top: 1em;
+  display: flex;
   overflow: auto;
   padding: 1em;
+  height: 100%;
+  text-align: center;
   background-color: rgba(255, 255, 255, .9);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
