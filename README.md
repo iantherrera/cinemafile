@@ -15,7 +15,7 @@ cd server
 ```
 node server
 ```
-After startiing server, move to client directory to start React client application:
+After starting server, move to client directory to start React client application:
 ```
 cd ../client
 ```
@@ -26,7 +26,7 @@ Application can be launched in browser on http://localhost:3000/
 
 ## Code Louisville Capstone Project
 ### OVERVIEW:
-React application allowing registered users to access and customize their own saved list of the top 25 movies of all time (according to the AFI).
+React application allowing users to a customize a list of the top 25 movies of all time (according to the AFI) that is persistent between sessions.
 
 - Movie cards are rendered in a scrollable, responsive flex grid with a poster graphic and other metadata fetched from external API’s.
 - Movie card gallery view is the default, but users can view data and options in a compact list.
