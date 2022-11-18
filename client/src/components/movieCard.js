@@ -201,6 +201,28 @@ export default function MovieCards() {
 
   // Reset movie list
   async function resetList() {
+
+    // Remove list view class from elements and return to default gallery view
+    const contentContainer = document.querySelector(".contentContainer");
+    if (contentContainer.id === "listViewContainer") {
+      const movieListContainers = document.querySelectorAll("#listViewContainer *");
+      for (let i = 0; i < movieListContainers.length; i++) {
+        movieListContainers[i].classList.remove("listContainer");
+      }
+      const movieListContainer = document.getElementById("listViewContainer");
+      movieListContainer.removeAttribute("id");
+      movieListContainer.setAttribute("id", "movieCardsContainer");
+      const viewButton = document.getElementById("viewButton");
+      const isListView = false;
+      setIsListView(isListView);
+      viewButton.innerHTML = "listview";
+    }
+    // Reset checkboxes with reset
+    const checkboxes = document.querySelectorAll(".checkbox");
+    for (let i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].checked = false;
+    }
+
     userData.movieData = initMovieData;
     await updateUserDB(userData._id);
     setUserData(userData);
