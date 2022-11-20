@@ -126,7 +126,7 @@ nav {
   background-color: rgb(255, 170, 32);
   align-self: center;
   height: 65vh;
-  min-width: 300px;
+  min-width: 200px;
   overflow: auto;
   margin: auto;
   padding: .3em;
@@ -362,10 +362,86 @@ label input {
   .navButton {
     font-size: 1.5em;
   }
+
+  .movieCard {
+    height: 45vh;
+  }
 }
 
-@media screen and (min-width: 720px) and (orientation: landscape) {
+@media screen and (min-width: 600px) and (orientation: landscape) {
 
+  .movieCard {
+    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, auto);
+    grid-template-areas:
+      "movieInfo movieInfo cardOptions cardOptions"
+      "posterImg synopsis synopsis synopsis";
+    max-width: unset;
+    margin: 0;
+  }
+
+  .movieInfoContainer {
+    grid-area: movieInfo;
+    border-top-left-radius: 20px;
+  }
+
+  .cardOptionsContainer {
+    grid-area: cardOptions;
+    border-top-left-radius: unset;
+  }
+
+  .moviePosterContainer {
+    grid-area: posterImg;
+    border-bottom-left-radius: 20px;
+  }
+
+  .posterImg {
+    max-height: 100px;
+  }
+
+  .synopsis {
+    grid-area: synopsis;
+    border-bottom-left-radius: unset;
+  }
+}
+
+@media screen and (min-width: 720px) and (min-height: 600px) {
+  .movieCard {
+    display: flex;
+    flex-direction: column;
+    max-width: 20%;
+  }
+
+  .movieInfoContainer {
+    border-top-left-radius: unset;
+  }
+
+  .cardOptionsContainer {
+    border-top-left-radius: 20px;
+  }
+
+  .moviePosterContainer {
+    border-bottom-left-radius: unset;
+  }
+
+  .posterImg {
+    max-height: 200px;
+  }
+
+  .synopsis {
+    border-bottom-left-radius: 20px;
+  }
+}
+
+@media screen and (min-width: 1080px) and (orientation: portrait) {
+  .movieCard {
+    height: 33vh;
+  }
+}
+
+@media screen and (min-width: 1020px) {
   #siteTitleContainer {
     height: 5em;
   }
@@ -381,9 +457,6 @@ label input {
   .navButton {
     font-size: 1.5em;
   }
-}
-
-@media screen and (min-width: 1080px) {
 
   .movieCard.listContainer {
     width: 60%;
@@ -395,5 +468,61 @@ label input {
 
   .movieInfoContainer.listContainer {
     padding: 0 3%;
+  }
+
+  .movieCard {
+    display: flex;
+    flex-direction: column;
+    max-width: 20%;
+  }
+
+  .movieInfoContainer {
+    border-top-left-radius: unset;
+  }
+
+  .cardOptionsContainer {
+    border-top-left-radius: 20px;
+  }
+
+  .moviePosterContainer {
+    border-bottom-left-radius: unset;
+  }
+
+  .posterImg {
+    max-height: 200px;
+  }
+
+  .synopsis {
+    border-bottom-left-radius: 20px;
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  #siteTitle {
+    font-size: 6vh;
+  }
+
+  .navButton {
+    font-size: 2.5vh;
+  }
+
+  .deleteButton {
+    font-size: 1.25vh;
+  }
+
+  .checkLabel {
+    font-size: 1.3vh;
+  }
+
+  .rank {
+    font-size: 1.6vh;
+  }
+
+  .title {
+    font-size: 1.8vh;
+  }
+
+  .year {
+    font-size: 1.6vh;
   }
 }
