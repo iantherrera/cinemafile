@@ -260,7 +260,7 @@ label input {
   justify-content: center;
   max-width: 100%;
   padding: .5em;
-  background-color: var(--color1);
+  background-color: rgba(254, 255, 172, .75);
 }
 
 .moviePosterContainer.listContainer {
