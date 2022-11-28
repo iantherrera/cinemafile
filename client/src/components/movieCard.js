@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import ScrollButton from '../components/ScrollButton';
+
 // Test user & db schema:
 /* 
 _id: 6369d823852305533b133048
@@ -252,6 +254,7 @@ export default function MovieCards() {
       <div id={isListView ? 'listViewContainer' : 'movieCardsContainer'} className="contentContainer">
         {movieCards()}
       </div>
+      <ScrollButton />
     </div>
   );
 }
