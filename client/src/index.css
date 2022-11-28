@@ -291,6 +291,30 @@ label input {
   display: none;
 }
 
+.scrollButtonContainer {
+  display: flex;
+  justify-content: center;
+}
+
+#topScrollButton {
+  font-family: 'Limelight', cursive;
+  position: fixed;
+  max-width: fit-content;
+  bottom: 40px;
+  height: 30px;
+  font-size: 1rem;
+  z-index: 1;
+  cursor: pointer;
+  background: rgb(148, 56, 85);
+  border: solid var(--color4);
+  border-radius: 20px;
+  color: rgb(255, 255, 255);
+}
+
+#topScrollButton:hover {
+  background-color: rgb(255, 170, 32)
+}
+
 /* Custom scrollbars for text sections */
 /* Custom scrollbar for Firefox */
 .synopsis {
@@ -313,6 +337,7 @@ label input {
   background-color: rgba(255, 255, 255, 1);
 }
 
+/* Media breakpoints */
 @media screen and (min-width: 600px) {
 
   #movieCardsContainer {
