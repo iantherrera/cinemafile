@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Routes } from "react-router-dom";
 
-import MovieCards from './components/movieCard';
+import MovieCards from './components/MovieCard';
 
 
 

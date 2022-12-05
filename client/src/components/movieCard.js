@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-import ScrollButton from '../components/ScrollButton';
+import Header from './Header';
+import ScrollButton from './ScrollButton';
 
 // Test user & db schema:
 /* 
@@ -78,7 +79,6 @@ export default function MovieCards() {
   const [userData, setUserData] = useState([]);
   const [movieData, setMovieData] = useState([]);
   const [isListView, setIsListView] = useState(false);
-  const initMovieData = require("../initData/initMovieData.json");
 
   const userId = '637b14481d2f152a175dacf1';
 
@@ -163,93 +163,10 @@ export default function MovieCards() {
     });
   }
 
-  // View style button
-  function viewStyleButton() {
-    return (
-      <button id="viewButton" className="navButton" type="button"
-        onClick={() => {
-          const currentListView = !isListView;
-          setIsListView(isListView => !isListView);
-          if (currentListView) {
-            const movieListContainers = document.querySelectorAll("#movieCardsContainer *");
-            for (let i = 0; i < movieListContainers.length; i++) {
-              movieListContainers[i].classList.add("listContainer");
-            }
-          } else {
-            const movieListContainers = document.querySelectorAll("#listViewContainer *");
-            for (let i = 0; i < movieListContainers.length; i++) {
-              movieListContainers[i].classList.remove("listContainer");
-            }
-          }
-        }}
-      >
-        {isListView ? "gallery" : "listview"}
-      </button>
-    )
-  }
-
-  // Movie list reset button
-  function resetButton() {
-    return (
-      <button id="resetButton" className="navButton" type="button"
-        onClick={() => {
-          resetList();
-        }}
-      >
-        Reset List
-      </button>
-    )
-  }
-
-  // Reset movie list
-  async function resetList() {
-
-    // Remove list view class from elements and return to default gallery view
-    const contentContainer = document.querySelector(".contentContainer");
-    if (contentContainer.id === "listViewContainer") {
-      const movieListContainers = document.querySelectorAll("#listViewContainer *");
-      for (let i = 0; i < movieListContainers.length; i++) {
-        movieListContainers[i].classList.remove("listContainer");
-      }
-      const movieListContainer = document.getElementById("listViewContainer");
-      movieListContainer.removeAttribute("id");
-      movieListContainer.setAttribute("id", "movieCardsContainer");
-      const viewButton = document.getElementById("viewButton");
-      const isListView = false;
-      setIsListView(isListView);
-      viewButton.innerHTML = "listview";
-    }
-    // Reset checkboxes with reset
-    const checkboxes = document.querySelectorAll(".checkbox");
-    for (let i = 0; i < checkboxes.length; i++) {
-      checkboxes[i].checked = false;
-    }
-
-    userData.movieData = initMovieData;
-    await updateUserDB(userData._id);
-    setUserData(userData);
-    setMovieData(userData.movieData);
-  }
-
-  // Title header and menu bar
-  function header() {
-    return (
-      <header>
-        <div id="siteTitleContainer">
-          <h1 id="siteTitle">cinefile</h1>
-        </div>
-        <nav>
-          {viewStyleButton()}
-          {resetButton()}
-        </nav>
-      </header>
-    )
-  }
-
   // Renders component display
   return (
     <div id="page">
-      {header()}
+      <Header isListView={isListView} setIsListView={setIsListView} userData={userData} setUserData={setUserData} setMovieData={setMovieData} />
       <div id="bgWrap"></div>
       <div id={isListView ? 'listViewContainer' : 'movieCardsContainer'} className="contentContainer">
         {movieCards()}
