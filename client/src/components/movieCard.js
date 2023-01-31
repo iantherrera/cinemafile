@@ -80,7 +80,7 @@ export default function MovieCards() {
   const [movieData, setMovieData] = useState([]);
   const [isListView, setIsListView] = useState(false);
 
-  const userId = '637b14481d2f152a175dacf1';
+  const userId = "6369d823852305533b133048"
 
   // Method to fetch user data and render cards when movie list updates
   useEffect(() => {
