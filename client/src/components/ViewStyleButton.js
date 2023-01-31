@@ -20,7 +20,7 @@ export default function viewStyleButton({ isListView, setIsListView }) {
                 }
             }}
         >
-            {isListView ? "gallery" : "listview"}
+            {isListView ? "Gallery" : "Listview"}
         </button>
     )
 }

@@ -6,36 +6,34 @@ by Ian Herrera
 
 [Project Notes & Wireframes](https://drive.google.com/file/d/194O0oHOlF9V_1GsRv403Ydp8lIth-PZk/view?usp=sharing)
 
-Clone repository to run locally.
-
-From /cinefile root directory, move to /server directory to start server:
-```
-cd server
-```
-```
-node server
-```
-After starting server, move to client directory to start React client application:
-```
-cd ../client
-```
-```
-npm start
-```
-Application can be launched in browser on http://localhost:3000/
+#### Video Demo:  <https://youtu.be/ykbVYPiow3U>
 
 ## Code Louisville Capstone Project
-### OVERVIEW:
-React application allowing users to a customize a list of the top 100 movies of all time (according to the AFI) that is persistent between sessions.
+
+### Project summary & main features:
+
+#### Full-stack React application allowing users to customize a list of the top 100 movies of all time (according to the AFI) that is persistent between sessions.
 
 - Movie cards are rendered in a scrollable, responsive flex grid with a poster graphic and other metadata fetched from external API’s.
 - Movie card gallery view is the default, but users can view data and options in a compact list.
 - Users can favorite or delete movie entries and add a check to any film that has been viewed.
 - Users can reset list to original default.
 - User data for customized movie list will be saved to an external database and persist between sessions.
+- Front-end application is developed with React and utilizes hooks, props, state, and component-based structures.
+- Back-end application utilizes a Node server built with Express.
+- Application utilizes MongoDB for data storage and retrieval.
 
-### Future Features:
-- Requirement to register and log in to access application with unique stored data for each unique user. Application currently utilizes a single user's data with a hard-coded user_id in database. Database schema, application scoping, and database retrieval methods, however, are built to allow future implementation of multiple users and sets of data.
+### Client Application:
+
+- MovieCard.js is the primary component for the the front-end React application, rendered by App.js. MovieCard.js contains the render template for movie cards, which takes in props from the MovieCards function. MovieCard.js contains functions providing functionality for toggling Favorites & Viewed films, deleting movie entries from the user's list, making requests to the server for updating the user's database as movie cards are edited by the user, and re-rendering the movie card components according to the updated database. The MovieCard component passes props down to the Header component, which passes props down to ViewStyleButton & ResetButton, providing feature functionality for the navigation bar. ViewStyleButton toggles movie card list between gallery style viewing to list style viewing by changing classes. ResetButton re-initializes user data with initMovieData.json and updates the user database, triggering a re-render of movie card components.
+
+### Server application:
+
+- Server.js initializes the server application and opens up a port that can be utilized for client requests. Server connection is defined by conn.js. Routes provided by userData.js enable user data retrieval and updating user data in the MongoDB database for client requests.
+
+### Future features:
+
+- Plans for future features include user registration and login. Components are currently scoped to accommodate future login and registration components. Database requests currently utilize a single hard-coded userid for accessing records, but the server requests and database schema are set up for accessing multiple user accounts containing user-specific data for each account.
 
 ### PROJECT FEATURE REQUIREMENT LIST:
 

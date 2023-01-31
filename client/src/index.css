@@ -7,6 +7,7 @@ html {
 
 * {
   box-sizing: border-box;
+  font-family: 'Limelight', cursive;
   margin: 0;
 }
 
@@ -83,9 +84,10 @@ nav {
   min-height: 25px;
   min-width: 0px;
   overflow: hidden;
-  padding: 0px;
-  padding-left: 15px;
-  padding-right: 15px;
+  margin: auto;
+  padding: .5em;
+  padding-left: .75em;
+  padding-right: .75em;
   text-align: center;
   touch-action: manipulation;
   transition: background-color 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s, box-shadow 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s, color 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s;
@@ -102,6 +104,36 @@ nav {
 .navButton:active {
   background: var(--color4);
   color: rgb(255, 255, 255, .7);
+}
+
+#loginFormContainer,
+#registrationFormContainer {
+  display: flex;
+}
+
+#loginForm,
+#registrationForm {
+  display: flex;
+  flex-direction: column;
+  max-width: fit-content;
+  background: var(--color1);
+  align-items: center;
+  margin: 2em auto;
+  gap: 2em;
+  padding: 2em;
+  border-radius: 20px;
+}
+
+.loginInputContainer,
+.registrationInputContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.loginInputContainer>label,
+.registrationInputContainer>label {
+  display: flex;
+  margin: auto;
 }
 
 #movieCardsContainer {
@@ -200,6 +232,7 @@ label input {
 }
 
 .checkLabel {
+  display: flex;
   font-size: .9em;
 }
 
@@ -389,7 +422,7 @@ label input {
   }
 
   .navButton {
-    font-size: 1.5em;
+    font-size: 1.25em;
   }
 
   .movieCard {
@@ -484,7 +517,7 @@ label input {
   }
 
   .navButton {
-    font-size: 1.5em;
+    font-size: 1.25em;
   }
 
   .movieCard.listContainer {
@@ -532,7 +565,7 @@ label input {
   }
 
   .navButton {
-    font-size: 2.5vh;
+    font-size: 2.25vh;
   }
 
   .deleteButton {
