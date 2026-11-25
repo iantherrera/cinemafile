@@ -1,8 +1,8 @@
 import React from "react";
 
-import LogoutButton from "./LogoutButton";
-import ResetButton from './ResetButton';
-import ViewStyleButton from './ViewStyleButton';
+import LogoutButton from "./pages/MovieCards/LogoutButton";
+import ResetButton from './pages/MovieCards/ResetButton';
+import ViewStyleButton from './pages/MovieCards/ViewStyleButton';
 
 // Title header and menu bar
 export default function Header({ loggedIn, setLoggedIn, isListView, setIsListView, userData, setUserData, setMovieData }) {
@@ -12,7 +12,7 @@ export default function Header({ loggedIn, setLoggedIn, isListView, setIsListVie
         return (
             <header>
                 <div id="siteTitleContainer">
-                    <h1 id="siteTitle">cinefile</h1>
+                    <h1 id="siteTitle">cinemafile</h1>
                 </div>
                 <nav>
                     <ViewStyleButton isListView={isListView} setIsListView={setIsListView} />

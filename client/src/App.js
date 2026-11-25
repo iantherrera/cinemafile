@@ -1,9 +1,9 @@
 import React from 'react';
 import { Route, Routes } from "react-router-dom";
 
-import LoginForm from './components/LogInForm';
-import RegistrationForm from './components/Registration';
-import MovieCards from './components/MovieCard';
+import LoginForm from './features/pages/LogIn/LogInForm';
+import RegistrationForm from './features/pages/Registration/Registration';
+import MovieCards from './features/pages/MovieCards/MovieCard';
 
 function App() {
   // App render

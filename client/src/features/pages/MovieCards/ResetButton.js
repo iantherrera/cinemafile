@@ -1,5 +1,5 @@
 import React from "react";
-import updateUserDB from "./UpdateUserDB";
+import updateUserDB from "../../UpdateUserDB";
 
 // Movie list reset button
 export default function ResetButton({ isListView, setIsListView, userData, setUserData, setMovieData }) {
@@ -16,7 +16,7 @@ export default function ResetButton({ isListView, setIsListView, userData, setUs
 
 // Reset movie list
 async function ResetList({ isListView, setIsListView, userData, setUserData, setMovieData }) {
-    const initMovieData = require("../initData/initMovieData.json");
+    const initMovieData = require("../../../initData/initMovieData.json");
 
     // Remove list view class from elements and return to default gallery view
     const contentContainer = document.querySelector(".contentContainer");
