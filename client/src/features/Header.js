@@ -5,7 +5,9 @@ import ResetButton from './pages/MovieCards/ResetButton';
 import ViewStyleButton from './pages/MovieCards/ViewStyleButton';
 
 // Title header and menu bar
-export default function Header({ loggedIn, setLoggedIn, isListView, setIsListView, userData, setUserData, setMovieData }) {
+// TODO: loggedIn is forced true until login exists, so the logged-out branch
+// below is unreachable and LogoutButton has no session to clear.
+export default function Header({ loggedIn, setLoggedIn, isListView, setIsListView, onReset }) {
     loggedIn = true;
 
     if (loggedIn) {
@@ -16,7 +18,7 @@ export default function Header({ loggedIn, setLoggedIn, isListView, setIsListVie
                 </div>
                 <nav>
                     <ViewStyleButton isListView={isListView} setIsListView={setIsListView} />
-                    <ResetButton isListView={isListView} setIsListView={setIsListView} userData={userData} setUserData={setUserData} setMovieData={setMovieData} />
+                    <ResetButton onReset={onReset} />
                     <LogoutButton loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
                 </nav>
             </header>
@@ -26,7 +28,7 @@ export default function Header({ loggedIn, setLoggedIn, isListView, setIsListVie
     return (
         <header>
             <div id="siteTitleContainer">
-                <h1 id="siteTitle">cinefile</h1>
+                <h1 id="siteTitle">cinemafile</h1>
             </div>
             <nav>
                 <button className="navButton">Register</button>

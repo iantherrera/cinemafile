@@ -151,6 +151,17 @@ nav {
   flex-wrap: nowrap;
 }
 
+.errorMessage {
+  font-family: 'Faustina', serif;
+  max-width: 40em;
+  margin: 1em auto;
+  padding: .75em 1em;
+  text-align: center;
+  color: #ffffff;
+  background-color: var(--color4);
+  border-radius: 10px;
+}
+
 .movieCard {
   display: flex;
   flex-direction: column;
@@ -165,7 +176,7 @@ nav {
   border-radius: 20px;
 }
 
-.movieCard.listContainer {
+#listViewContainer .movieCard {
   justify-content: space-between;
   height: unset;
   max-width: unset;
@@ -184,7 +195,7 @@ nav {
   border-top-right-radius: 20px;
 }
 
-.cardOptionsContainer.listContainer {
+#listViewContainer .cardOptionsContainer {
   justify-content: space-around;
 }
 
@@ -243,7 +254,7 @@ label input {
   background-color: rgba(255, 255, 255, 1);
 }
 
-.movieInfoContainer.listContainer {
+#listViewContainer .movieInfoContainer {
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 }
@@ -266,7 +277,7 @@ label input {
   background-color: rgba(255, 255, 255, 1);
 }
 
-.titleYearContainer.listContainer {
+#listViewContainer .titleYearContainer {
   border-bottom-right-radius: 20px;
 }
 
@@ -279,7 +290,7 @@ label input {
   background-color: rgba(255, 255, 255, 1);
 }
 
-.title.listContainer {
+#listViewContainer .title {
   margin: auto 0px;
 }
 
@@ -300,7 +311,7 @@ label input {
   background-color: rgba(254, 255, 172, .75);
 }
 
-.moviePosterContainer.listContainer {
+#listViewContainer .moviePosterContainer {
   display: none;
 }
 
@@ -324,7 +335,7 @@ label input {
   overflow: auto;
 }
 
-.synopsis.listContainer {
+#listViewContainer .synopsis {
   display: none;
 }
 
@@ -386,21 +397,21 @@ label input {
     max-width: 20%;
   }
 
-  .movieCard.listContainer {
+  #listViewContainer .movieCard {
     flex-direction: row-reverse;
     justify-content: space-between;
     height: unset;
     width: 80%;
   }
 
-  .cardOptionsContainer.listContainer {
+  #listViewContainer .cardOptionsContainer {
     justify-content: space-around;
     border-top-left-radius: unset;
     width: 100%;
     border-bottom-right-radius: 20px;
   }
 
-  .movieInfoContainer.listContainer {
+  #listViewContainer .movieInfoContainer {
     border-bottom-right-radius: unset;
     border-top-left-radius: 20px;
     width: 100%;
@@ -520,15 +531,15 @@ label input {
     font-size: 1.25em;
   }
 
-  .movieCard.listContainer {
+  #listViewContainer .movieCard {
     width: 60%;
   }
 
-  .title.listContainer {
+  #listViewContainer .title {
     margin: auto;
   }
 
-  .movieInfoContainer.listContainer {
+  #listViewContainer .movieInfoContainer {
     padding: 0 3%;
   }
 
