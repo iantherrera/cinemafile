@@ -1,19 +1,22 @@
-import React, { useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
 
 const ScrollButton = () => {
-    const [visible, setVisible] = useState(false)
+    const [visible, setVisible] = useState(false);
 
-    const toggleVisible = () => {
-        const scrolled = document.documentElement.scrollTop;
+    // One listener for the lifetime of the component, removed on unmount.
+    // Previously this was registered in the render body, so every render
+    // added another listener and none were ever removed.
+    useEffect(() => {
+        const toggleVisible = () => {
+            setVisible(document.documentElement.scrollTop > 300);
+        };
 
-        if (scrolled > 300) {
-            setVisible(true)
-        }
-        else if (scrolled <= 300) {
-            setVisible(false)
-        }
-    };
+        // Sync once in case the page is restored partway down.
+        toggleVisible();
+
+        window.addEventListener('scroll', toggleVisible, { passive: true });
+        return () => window.removeEventListener('scroll', toggleVisible);
+    }, []);
 
     const scrollToTop = () => {
         window.scrollTo({
@@ -22,11 +25,9 @@ const ScrollButton = () => {
         });
     };
 
-    window.addEventListener('scroll', toggleVisible);
-
     return (
         <div className='scrollButtonContainer'>
-            <button id="topScrollButton" onClick={scrollToTop}
+            <button id="topScrollButton" type="button" onClick={scrollToTop}
                 style={{ display: visible ? 'inline' : 'none' }}>
                 ^ Top of List ^
             </button>
@@ -34,4 +35,4 @@ const ScrollButton = () => {
     );
 }
 
-export default ScrollButton; 
+export default ScrollButton;
