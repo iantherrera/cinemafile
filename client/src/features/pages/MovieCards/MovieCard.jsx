@@ -4,7 +4,7 @@ import Header from '../../Header';
 import ScrollButton from './ScrollButton';
 import initMovieData from '../../../initData/initMovieData.json';
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // TODO: take this from the signed-in session once login exists. Until then the
 // server has no auth and every client reads the same record.
