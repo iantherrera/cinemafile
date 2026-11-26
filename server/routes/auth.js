@@ -2,7 +2,8 @@ const express = require("express");
 const { ObjectId } = require("mongodb");
 
 const dbObj = require("../db/conn");
-const { hashPassword, verifyPassword, validatePassword } = require("../auth/password");
+const { hashPassword, verifyPassword, validatePassword, ABSENT_USER } = require("../auth/password");
+const { SESSION_COOKIE_NAME } = require("../auth/session");
 const { defaultMovieList } = require("../initData/defaultMovieList");
 
 const authRoutes = express.Router();
@@ -96,9 +97,13 @@ authRoutes.post("/auth/login", async (req, res) => {
     try {
         const user = await collection.findOne({ userName });
 
-        // One message for both, so the response cannot enumerate accounts.
-        const ok = user && (await verifyPassword(password, user.hash, user.salt));
-        if (!ok) {
+        // Always hash, even with no match: short-circuiting here would answer
+        // an unknown username far faster than a real one, and that gap
+        // enumerates accounts no matter how uniform the message is.
+        const { hash, salt } = user ?? ABSENT_USER;
+        const passwordMatches = await verifyPassword(password, hash, salt);
+
+        if (!user || !passwordMatches) {
             return res.status(401).json({ error: "Incorrect username or password" });
         }
 
@@ -120,7 +125,7 @@ authRoutes.post("/auth/logout", (req, res) => {
             console.error("POST /auth/logout failed:", err);
             return res.status(500).json({ error: "Could not sign you out" });
         }
-        res.clearCookie("cinemafile.sid");
+        res.clearCookie(SESSION_COOKIE_NAME);
         res.status(204).end();
     });
 });

@@ -1,5 +1,7 @@
 # cinemafile
 
+[![CI](https://github.com/iantherrera/cinemafile/actions/workflows/ci.yml/badge.svg)](https://github.com/iantherrera/cinemafile/actions/workflows/ci.yml)
+
 by Ian Herrera
 
 A full-stack React application for keeping your own copy of the AFI top 100 films — mark what you have seen, flag favourites, drop the ones you will never watch, and reset to the original list whenever you like. Each account keeps its own list.
@@ -69,9 +71,11 @@ The server logs `Connected to MongoDB database "cinefile".` on success. If it re
 ## Tests
 
 ```bash
-cd server && npm test   # 62 integration tests
+cd server && npm test   # 65 integration tests
 cd client && npm test   # 26 component tests
 ```
+
+Both suites run on every push via GitHub Actions.
 
 The server tests run against a real `mongod`, started by `mongodb-memory-server` and thrown away afterwards. They use the real driver, the real database module and the same Express app the server builds, so they exercise actual behaviour rather than stubs — including that credentials never leave the database, that one account cannot read another's list, and that logout invalidates the session server-side.
 

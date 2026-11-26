@@ -19,6 +19,16 @@ const SCRYPT_PARAMS = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 200;
 
+// Verified against when no account matched, so a sign-in attempt costs the
+// same whether the username exists or not. Skipping the hash for an unknown
+// name answers in about a millisecond where a real one takes ninety, which
+// tells an attacker which usernames are registered however carefully the
+// error message is worded.
+const ABSENT_USER = {
+    hash: crypto.randomBytes(KEY_BYTES).toString("hex"),
+    salt: crypto.randomBytes(SALT_BYTES).toString("hex"),
+};
+
 // scrypt is expensive by design, so an unbounded password is a cheap way to
 // tie up the event loop.
 function validatePassword(password) {
@@ -62,6 +72,6 @@ module.exports = {
     hashPassword,
     verifyPassword,
     validatePassword,
+    ABSENT_USER,
     MIN_PASSWORD_LENGTH,
-    MAX_PASSWORD_LENGTH,
 };

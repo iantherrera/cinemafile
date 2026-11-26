@@ -250,11 +250,53 @@ async function run() {
     check("/auth/me is 401 after logout", (await get("/auth/me", bob)).status === 401);
     check("alice's session survives bob's logout", (await get("/userData", alice)).status === 200);
 
+    // ---------- a failed sign-in must not reveal whether the account exists ----------
+    // The error message is identical either way, but skipping the hash for an
+    // unknown username used to answer ~56x faster, which gave the same answer
+    // away through the clock.
+    const timeLogin = async (name) => {
+        const samples = [];
+        for (let i = 0; i < 6; i++) {
+            const started = process.hrtime.bigint();
+            await post("/auth/login", { userName: name, password: "definitely not it" }, newJar());
+            samples.push(Number(process.hrtime.bigint() - started) / 1e6);
+        }
+        samples.sort((a, b) => a - b);
+        return samples[Math.floor(samples.length / 2)];
+    };
+
+    const knownMs = await timeLogin("alice");
+    const unknownMs = await timeLogin("nobodyhere");
+    const ratio = Math.max(knownMs, unknownMs) / Math.max(1, Math.min(knownMs, unknownMs));
+    check("a failed sign-in takes similar time whether or not the account exists",
+        ratio < 3,
+        `known ${knownMs.toFixed(0)}ms vs unknown ${unknownMs.toFixed(0)}ms (ratio ${ratio.toFixed(1)}x)`);
+
     // ---------- misc ----------
     check("unknown route -> 404", (await get("/no-such-route", alice)).status === 404);
     check("server still answering after every error", (await get("/userData", alice)).status === 200);
 
+    checkMissingConfig();
     await runRateLimitChecks();
+}
+
+// Someone cloning the repository runs the server before writing config.env.
+// What they see then should name the file to create.
+function checkMissingConfig() {
+    const { createApp } = require("../app");
+    const saved = process.env.ATLAS_URI;
+    delete process.env.ATLAS_URI;
+
+    try {
+        createApp({ mongoUrl: undefined });
+        check("missing ATLAS_URI is rejected", false, "createApp returned an app with no database configured");
+    } catch (err) {
+        check("missing ATLAS_URI is rejected", true);
+        check("and the message names the file to create",
+            err.message.includes("config.env.example"), err.message);
+    } finally {
+        process.env.ATLAS_URI = saved;
+    }
 }
 
 // The limits run on their own app instance with deliberately tiny values, so

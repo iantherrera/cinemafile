@@ -8,6 +8,7 @@ const session = require("express-session");
 const { MongoStore } = require("connect-mongo");
 
 const { createLimiters } = require("./auth/rateLimit");
+const { SESSION_COOKIE_NAME } = require("./auth/session");
 
 const DAY = 24 * 60 * 60;
 const SESSION_DAYS = 14;
@@ -29,6 +30,16 @@ function createApp(options = {}) {
     const clientOrigin = options.clientOrigin || process.env.CLIENT_ORIGIN || "http://localhost:3000";
     const mongoUrl = options.mongoUrl || process.env.ATLAS_URI;
 
+    // Checked before the store is built. connect-mongo would otherwise throw
+    // "You must provide either mongoUrl|clientPromise|client in options",
+    // which is the first thing anyone sees who clones this and runs it before
+    // creating config.env.
+    if (!mongoUrl) {
+        throw new Error(
+            "ATLAS_URI is not set. Copy server/config.env.example to server/config.env and fill it in."
+        );
+    }
+
     const app = express();
 
     // Behind a proxy every request appears to come from the proxy, collapsing
@@ -48,7 +59,7 @@ function createApp(options = {}) {
 
     app.use(
         session({
-            name: "cinemafile.sid",
+            name: SESSION_COOKIE_NAME,
             secret: sessionSecret(),
             resave: false,
             // Do not issue a cookie to visitors who never sign in.
