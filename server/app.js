@@ -96,8 +96,18 @@ function createApp(options = {}) {
     // Four arguments, so Express treats this as the error handler.
     // eslint-disable-next-line no-unused-vars
     app.use((err, req, res, next) => {
-        console.error("Unhandled error:", err);
-        res.status(500).json({ error: "Internal server error" });
+        // express.json() rejects a malformed body with status 400 and
+        // expose: true. Passing that through keeps a caller's typo out of the
+        // 500s, which should mean the server itself broke, and out of the
+        // error log along with it.
+        const status = Number(err.status || err.statusCode) || 500;
+
+        if (status >= 500) {
+            console.error("Unhandled error:", err);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+
+        res.status(status).json({ error: err.expose ? err.message : "Bad request" });
     });
 
     return app;

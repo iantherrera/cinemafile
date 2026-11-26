@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Header from '../../Header';
@@ -88,16 +88,22 @@ export default function MovieCards() {
     return () => { cancelled = true; };
   }, [handleApiError]);
 
+  // Saves run one at a time. Fired off concurrently they can arrive in any
+  // order, and the server keeps whichever lands last -- so a slow early
+  // request can overwrite a later edit with a staler list.
+  const pendingSave = useRef(Promise.resolve());
+
   // Callers must pass a new array rather than a mutated one: React compares by
   // reference, and an in-place edit will not re-render.
-  const applyMovieData = useCallback(async (nextMovieData) => {
+  const applyMovieData = useCallback((nextMovieData) => {
     setMovieData(nextMovieData);
     setError(null);
-    try {
-      await api.saveMovieData(nextMovieData);
-    } catch (err) {
-      handleApiError(err);
-    }
+
+    pendingSave.current = pendingSave.current
+      .then(() => api.saveMovieData(nextMovieData))
+      .catch(handleApiError);
+
+    return pendingSave.current;
   }, [handleApiError]);
 
   const toggleViewed = useCallback((imdbId) => {

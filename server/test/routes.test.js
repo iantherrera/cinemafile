@@ -272,6 +272,23 @@ async function run() {
         ratio < 3,
         `known ${knownMs.toFixed(0)}ms vs unknown ${unknownMs.toFixed(0)}ms (ratio ${ratio.toFixed(1)}x)`);
 
+    // ---------- a caller's bad input is not a server fault ----------
+    const malformed = await new Promise((resolve, reject) => {
+        const body = "{ this is not json";
+        const req = http.request(
+            { host: "localhost", port: PORT, path: "/auth/login", method: "POST",
+              headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
+            (res) => { let d = ""; res.on("data", (c) => { d += c; }); res.on("end", () => {
+                let b = null; try { b = JSON.parse(d); } catch (e) { /* ignore */ }
+                resolve({ status: res.statusCode, body: b }); }); }
+        );
+        req.on("error", reject);
+        req.write(body);
+        req.end();
+    });
+    check("a malformed JSON body -> 400, not 500", malformed.status === 400,
+        "got " + malformed.status + " " + JSON.stringify(malformed.body));
+
     // ---------- misc ----------
     check("unknown route -> 404", (await get("/no-such-route", alice)).status === 404);
     check("server still answering after every error", (await get("/userData", alice)).status === 200);

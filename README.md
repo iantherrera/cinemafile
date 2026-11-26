@@ -71,8 +71,8 @@ The server logs `Connected to MongoDB database "cinefile".` on success. If it re
 ## Tests
 
 ```bash
-cd server && npm test   # 65 integration tests
-cd client && npm test   # 26 component tests
+cd server && npm test   # 66 integration tests
+cd client && npm test   # 27 component tests
 ```
 
 Both suites run on every push via GitHub Actions.
