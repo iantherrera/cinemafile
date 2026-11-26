@@ -37,6 +37,7 @@ describe('routing', () => {
         renderAt('/');
         await waitFor(() => expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument());
         expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument();
+        expect(screen.queryByText(/signed in as/i)).not.toBeInTheDocument();
     });
 
     it('shows the movie list to a signed-in visitor', async () => {
@@ -44,6 +45,17 @@ describe('routing', () => {
         renderAt('/');
         await waitFor(() => expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument());
         expect(api.getUserData).toHaveBeenCalled();
+    });
+
+    it('names the signed-in user in the header', async () => {
+        signedIn();
+        renderAt('/');
+
+        // The name is what the page shows; the prefix is carried alongside it
+        // for anyone who hears the page rather than sees it, and is the only
+        // thing left when the viewport is too narrow for the name.
+        await waitFor(() => expect(screen.getByText('alice')).toBeInTheDocument());
+        expect(screen.getByText(/signed in as/i)).toBeInTheDocument();
     });
 
     it('sends a signed-in visitor away from the login page', async () => {

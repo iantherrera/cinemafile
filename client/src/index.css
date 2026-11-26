@@ -138,6 +138,52 @@ nav {
   gap: 0.5rem;
 }
 
+/* Reachable by a screen reader, absent from the page. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.userChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 11rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+
+.userAvatar {
+  display: grid;
+  place-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  background-color: var(--accent-wash);
+  border: 1px solid var(--accent-line);
+  border-radius: 50%;
+}
+
+.userName {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ============================================================
    Buttons
    ============================================================ */
@@ -703,6 +749,16 @@ input[type="password"]:focus {
     flex: 1;
     min-width: 0;
     padding: 0 0.6rem;
+  }
+
+  /* Only the initial fits beside three buttons at this width. The name stays
+     in the accessibility tree rather than being removed from it. */
+  .userChip .userName {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 
   /* A single auto-fill column on a phone makes each card a full screen of

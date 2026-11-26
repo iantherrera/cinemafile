@@ -18,6 +18,13 @@ export default function Header({ isListView, setIsListView, onReset }) {
                         <ViewStyleButton isListView={isListView} setIsListView={setIsListView} />
                         <ResetButton onReset={onReset} />
                         <LogoutButton />
+                        <span className="userChip">
+                            <span className="userAvatar" aria-hidden="true">
+                                {user.userName.charAt(0).toUpperCase()}
+                            </span>
+                            <span className="visuallyHidden">Signed in as </span>
+                            <span className="userName">{user.userName}</span>
+                        </span>
                     </>
                 ) : (
                     <>
