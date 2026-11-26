@@ -6,8 +6,6 @@ import LogoutButton from "./pages/MovieCards/LogoutButton";
 import ResetButton from './pages/MovieCards/ResetButton';
 import ViewStyleButton from './pages/MovieCards/ViewStyleButton';
 
-// Title header and menu bar. The nav depends on whether anyone is signed in,
-// which now comes from the session rather than being assumed.
 export default function Header({ isListView, setIsListView, onReset }) {
     const { user } = useAuth();
 

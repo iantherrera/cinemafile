@@ -8,12 +8,9 @@ const userDataRoutes = express.Router();
 
 const COLLECTION = "userData";
 
-// Credential material must never leave the server. Applied to every read of a
-// user document.
 const WITHOUT_CREDENTIALS = { hash: 0, salt: 0 };
 
-// Returns the collection, or null after responding 503 if the database is not
-// connected yet. getDb() is undefined until connectToServer resolves.
+// getDb() is undefined until connectToServer resolves, hence the 503.
 function getCollection(res) {
     const db = dbObj.getDb();
     if (!db) {
@@ -23,9 +20,8 @@ function getCollection(res) {
     return db.collection(COLLECTION);
 }
 
-// The id comes from the signed-in session, never from the URL. Taking it from
-// the request would let anyone read or overwrite another account's list just
-// by changing the path.
+// From the session, never the URL: taking it from the request would let
+// anyone read or overwrite another account's list by editing the path.
 function requireSession(req, res) {
     if (!req.session || !req.session.userId) {
         res.status(401).json({ error: "Not signed in" });
@@ -34,7 +30,6 @@ function requireSession(req, res) {
     return new ObjectId(req.session.userId);
 }
 
-// Read the signed-in user's movie list.
 userDataRoutes.route("/userData").get(async function (req, res) {
     const id = requireSession(req, res);
     if (!id) return;
@@ -54,14 +49,12 @@ userDataRoutes.route("/userData").get(async function (req, res) {
 
         res.json(user);
     } catch (err) {
-        // Report the failure instead of throwing out of an async handler,
-        // which would take the process down.
+        // Throwing out of an async handler would take the process down.
         console.error("GET /userData failed:", err);
         res.status(500).json({ error: "Could not load user data" });
     }
 });
 
-// Replace the signed-in user's movie list.
 userDataRoutes.route("/update").post(async function (req, res) {
     const id = requireSession(req, res);
     if (!id) return;
@@ -94,9 +87,7 @@ userDataRoutes.route("/update").post(async function (req, res) {
     }
 });
 
-// Restore the signed-in user's list to the default. The new list comes back in
-// the response so the client can render it without keeping its own copy of the
-// hundred records.
+// Returns the restored list so the client need not keep its own copy.
 userDataRoutes.route("/reset").post(async function (req, res) {
     const id = requireSession(req, res);
     if (!id) return;

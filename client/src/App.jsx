@@ -6,9 +6,9 @@ import LoginForm from './features/pages/LogIn/LogInForm';
 import RegistrationForm from './features/pages/Registration/Registration';
 import MovieCards from './features/pages/MovieCards/MovieCard';
 
-// Until the session check finishes we know nothing, so render neither the
-// protected page nor a redirect to the login page -- either would be a guess,
-// and the wrong one flashes the login form at a signed-in user.
+// Rendering either the protected page or a redirect before the session check
+// returns is a guess, and the wrong guess flashes the login form at someone
+// who is already signed in.
 function Pending() {
   return <div id="page"><div id="bgWrap"></div></div>;
 }
@@ -21,8 +21,6 @@ function RequireAuth({ children }) {
   return children;
 }
 
-// The mirror image: someone who is already signed in has no use for the login
-// or registration page.
 function RequireAnonymous({ children }) {
   const { user, loading } = useAuth();
 

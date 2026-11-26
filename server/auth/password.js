@@ -1,13 +1,7 @@
-// Password hashing with scrypt from node:crypto.
-//
-// scrypt is a memory-hard key derivation function, which is what you want for
-// passwords: it is deliberately expensive to evaluate, so guessing at scale
-// costs real time and memory. Using the built-in avoids a native dependency
-// that would need compiling on every platform this runs on.
-//
-// Each user gets their own random salt, stored alongside the hash, so two
-// people choosing the same password still produce different hashes and one
-// precomputed table cannot cover both.
+// scrypt is memory-hard, so guessing at scale costs real time and memory, and
+// being built in avoids a native dependency to compile per platform. The
+// per-user salt means identical passwords hash differently and no single
+// precomputed table covers them.
 
 const crypto = require("crypto");
 const { promisify } = require("util");
@@ -17,16 +11,16 @@ const scrypt = promisify(crypto.scrypt);
 const SALT_BYTES = 16;
 const KEY_BYTES = 64;
 
-// Cost parameters. N must be a power of two; raising it makes both hashing and
-// guessing proportionally more expensive. 2^15 keeps a single hash in the low
-// hundreds of milliseconds, which is unnoticeable on login and painful in bulk.
+// N must be a power of two, and raising it costs hashing and guessing alike.
+// 2^15 lands in the low hundreds of milliseconds: unnoticeable once, painful
+// in bulk.
 const SCRYPT_PARAMS = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 200;
 
-// scrypt is expensive by design, so an unbounded password is a cheap way for a
-// caller to tie up the event loop.
+// scrypt is expensive by design, so an unbounded password is a cheap way to
+// tie up the event loop.
 function validatePassword(password) {
     if (typeof password !== "string") return "Password is required";
     if (password.length < MIN_PASSWORD_LENGTH) {
@@ -44,9 +38,8 @@ async function hashPassword(password) {
     return { hash: derived.toString("hex"), salt };
 }
 
-// Compares in constant time. A plain === leaks how much of the hash matched
-// through how long the comparison took, which is enough to reconstruct it one
-// byte at a time given enough attempts.
+// Constant time: a plain === leaks how much of the hash matched through how
+// long it took, which is enough to rebuild it a byte at a time.
 async function verifyPassword(password, hash, salt) {
     if (typeof password !== "string" || typeof hash !== "string" || typeof salt !== "string") {
         return false;

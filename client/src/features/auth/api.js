@@ -1,9 +1,6 @@
-// Every call to the API goes through here.
-//
-// credentials: "include" is the important part: the session lives in an
-// httpOnly cookie that page scripts cannot read, so the browser has to be told
-// to attach it to cross-origin requests. The server pairs this with
-// cors({ credentials: true }) and an explicit origin.
+// credentials: "include" is required because the session is an httpOnly
+// cookie: the browser will not attach it to a cross-origin request otherwise.
+// The server side of that pairing is cors({ credentials: true }).
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -44,7 +41,6 @@ export const api = {
     logout: () => send("/auth/logout", { method: "POST" }),
     getUserData: () => send("/userData"),
     saveMovieData: (movieData) => send("/update", { method: "POST", body: { movieData } }),
-    // The server holds the default list and returns the restored one, so the
-    // client does not carry a second copy of it.
+    // Takes no argument: the server owns the default list and returns it.
     resetMovieData: () => send("/reset", { method: "POST" }),
 };

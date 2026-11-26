@@ -6,8 +6,6 @@ import ScrollButton from './ScrollButton';
 import { api } from '../../auth/api';
 import { useAuth } from '../../auth/AuthContext';
 
-// Movie card template. Checkboxes are controlled, so the rendered state always
-// reflects movieData rather than whatever the browser last did to the DOM.
 const MovieCard = ({ metaData, toggleViewed, toggleFavorite, deleteMovie }) => (
   <div className="movieCard">
     <div className='cardOptionsContainer'>
@@ -57,7 +55,6 @@ const MovieCard = ({ metaData, toggleViewed, toggleFavorite, deleteMovie }) => (
   </div>
 );
 
-// Functional component to render movie cards in app
 export default function MovieCards() {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -66,9 +63,8 @@ export default function MovieCards() {
   const [isListView, setIsListView] = useState(false);
   const [error, setError] = useState(null);
 
-  // A session can expire while the page is open. When the server says so,
-  // clear the stale local state and send the user to sign in again rather
-  // than showing a list they can no longer save.
+  // A session can expire while the page is open; leaving an unsavable list on
+  // screen is worse than sending the user back to sign in.
   const handleApiError = useCallback(async (err) => {
     if (err.status === 401) {
       await logout();
@@ -78,8 +74,6 @@ export default function MovieCards() {
     setError(err.message);
   }, [logout, navigate]);
 
-  // Load the list once on mount. Which user it belongs to is decided by the
-  // session cookie, so there is no id to pass.
   useEffect(() => {
     let cancelled = false;
 
@@ -94,8 +88,8 @@ export default function MovieCards() {
     return () => { cancelled = true; };
   }, [handleApiError]);
 
-  // Replace the list with a new array and persist it. Every caller builds its
-  // next value immutably, so React always sees a fresh reference and re-renders.
+  // Callers must pass a new array rather than a mutated one: React compares by
+  // reference, and an in-place edit will not re-render.
   const applyMovieData = useCallback(async (nextMovieData) => {
     setMovieData(nextMovieData);
     setError(null);
@@ -122,10 +116,8 @@ export default function MovieCards() {
     applyMovieData(movieData.filter((movie) => movie.imdbId !== imdbId));
   }, [movieData, applyMovieData]);
 
-  // Restore the default AFI list and drop back to gallery view. The server
-  // owns the default and sends back what it wrote, so this neither uploads a
-  // hundred records nor needs a local copy of them. The checkboxes clear
-  // themselves because they read from movieData.
+  // The server owns the default list and returns what it wrote, so nothing is
+  // uploaded and no local copy is needed.
   const resetMovieData = useCallback(async () => {
     setIsListView(false);
     setError(null);
@@ -137,7 +129,6 @@ export default function MovieCards() {
     }
   }, [handleApiError]);
 
-  // Renders component display
   return (
     <div id="page">
       <Header isListView={isListView} setIsListView={setIsListView} onReset={resetMovieData} />

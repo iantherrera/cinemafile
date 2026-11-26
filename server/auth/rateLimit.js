@@ -1,16 +1,10 @@
-// Rate limits for the authentication endpoints.
+// Keyed on IP rather than username on purpose: counting failures per account
+// would let anyone lock a known user out by sending bad passwords at it. The
+// cost is that an attacker spread across many addresses is not stopped here --
+// scrypt is what makes that expensive.
 //
-// Keyed on client IP rather than username, deliberately. Counting failures per
-// account would let anyone lock a known user out of their own account by
-// sending bad passwords at it -- trading a brute-force defence for a denial of
-// service. Per-IP limiting has the opposite weakness: an attacker spreading
-// attempts across many addresses is not stopped by it. scrypt is what makes
-// that expensive, and this keeps a single source from grinding through
-// guesses cheaply.
-//
-// The store is in memory, so counters reset when the server restarts and are
-// not shared between instances. For one process that is fine. Running several
-// behind a load balancer needs a shared store.
+// The store is in memory, so counters reset on restart and are not shared
+// between instances. Several behind a load balancer would need a shared store.
 
 const rateLimit = require("express-rate-limit");
 
@@ -38,9 +32,8 @@ function createLimiters(overrides = {}) {
         login: rateLimit({
             windowMs: loginWindowMs,
             limit: loginMax,
-            // Only failures count. Someone signing in correctly, even often,
-            // is not who this is for, and counting successes would lock out a
-            // shared address such as an office or a household.
+            // Counting successes would lock out a shared address such as an
+            // office or a household.
             skipSuccessfulRequests: true,
             standardHeaders: "draft-7",
             legacyHeaders: false,

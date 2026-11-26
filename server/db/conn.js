@@ -6,9 +6,8 @@ let client;
 let _db;
 
 module.exports = {
-    // Connects once at startup. The client is built here rather than at module
-    // load so a missing ATLAS_URI produces a clear message instead of throwing
-    // on require.
+    // The client is built here rather than at module load so a missing
+    // ATLAS_URI reports itself instead of throwing on require.
     connectToServer: async function () {
         const uri = process.env.ATLAS_URI;
         if (!uri) {
@@ -17,15 +16,14 @@ module.exports = {
             );
         }
 
-        // useNewUrlParser and useUnifiedTopology were no-ops in driver v4 and
-        // are removed in v6, so they are not passed.
+        // useNewUrlParser and useUnifiedTopology are removed in driver v6.
         client = new MongoClient(uri);
         await client.connect();
         _db = client.db(DB_NAME);
 
         // Enforced by the database so two simultaneous registrations cannot
-        // both pass a check and both insert. Partial, so it ignores any
-        // document without a userName rather than treating them as duplicates.
+        // both pass a check and insert. Partial, so documents without a
+        // userName are not treated as duplicates of each other.
         await _db.collection("userData").createIndex(
             { userName: 1 },
             { unique: true, partialFilterExpression: { userName: { $type: "string" } } }
