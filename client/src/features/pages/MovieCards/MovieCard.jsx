@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import Header from '../../Header';
 import ScrollButton from './ScrollButton';
-import initMovieData from '../../../initData/initMovieData.json';
 import { api } from '../../auth/api';
 import { useAuth } from '../../auth/AuthContext';
 
@@ -123,12 +122,20 @@ export default function MovieCards() {
     applyMovieData(movieData.filter((movie) => movie.imdbId !== imdbId));
   }, [movieData, applyMovieData]);
 
-  // Restore the default AFI list and drop back to gallery view. The checkboxes
-  // clear themselves because they read from movieData.
-  const resetMovieData = useCallback(() => {
+  // Restore the default AFI list and drop back to gallery view. The server
+  // owns the default and sends back what it wrote, so this neither uploads a
+  // hundred records nor needs a local copy of them. The checkboxes clear
+  // themselves because they read from movieData.
+  const resetMovieData = useCallback(async () => {
     setIsListView(false);
-    applyMovieData(initMovieData.map((movie) => ({ ...movie })));
-  }, [applyMovieData]);
+    setError(null);
+    try {
+      const { movieData: restored } = await api.resetMovieData();
+      setMovieData(restored);
+    } catch (err) {
+      handleApiError(err);
+    }
+  }, [handleApiError]);
 
   // Renders component display
   return (

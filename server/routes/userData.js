@@ -2,6 +2,7 @@ const express = require("express");
 const { ObjectId } = require("mongodb");
 
 const dbObj = require("../db/conn");
+const { defaultMovieList } = require("../initData/defaultMovieList");
 
 const userDataRoutes = express.Router();
 
@@ -90,6 +91,31 @@ userDataRoutes.route("/update").post(async function (req, res) {
     } catch (err) {
         console.error("POST /update failed:", err);
         res.status(500).json({ error: "Could not save changes" });
+    }
+});
+
+// Restore the signed-in user's list to the default. The new list comes back in
+// the response so the client can render it without keeping its own copy of the
+// hundred records.
+userDataRoutes.route("/reset").post(async function (req, res) {
+    const id = requireSession(req, res);
+    if (!id) return;
+
+    const collection = getCollection(res);
+    if (!collection) return;
+
+    try {
+        const movieData = defaultMovieList();
+        const result = await collection.updateOne({ _id: id }, { $set: { movieData } });
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ movieData });
+    } catch (err) {
+        console.error("POST /reset failed:", err);
+        res.status(500).json({ error: "Could not reset your list" });
     }
 });
 

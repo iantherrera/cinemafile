@@ -3,7 +3,7 @@ const { ObjectId } = require("mongodb");
 
 const dbObj = require("../db/conn");
 const { hashPassword, verifyPassword, validatePassword } = require("../auth/password");
-const initMovieData = require("../initData/initMovieData.json");
+const { defaultMovieList } = require("../initData/defaultMovieList");
 
 const authRoutes = express.Router();
 
@@ -71,7 +71,7 @@ authRoutes.post("/auth/register", async (req, res) => {
             userName,
             hash,
             salt,
-            movieData: initMovieData.map((movie) => ({ ...movie })),
+            movieData: defaultMovieList(),
             createdAt: new Date(),
         });
 

@@ -44,4 +44,7 @@ export const api = {
     logout: () => send("/auth/logout", { method: "POST" }),
     getUserData: () => send("/userData"),
     saveMovieData: (movieData) => send("/update", { method: "POST", body: { movieData } }),
+    // The server holds the default list and returns the restored one, so the
+    // client does not carry a second copy of it.
+    resetMovieData: () => send("/reset", { method: "POST" }),
 };

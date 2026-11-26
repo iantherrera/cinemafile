@@ -209,6 +209,36 @@ async function run() {
     check("update left credentials untouched",
         typeof aliceDoc.hash === "string" && typeof aliceDoc.salt === "string" && aliceDoc.userName === "alice");
 
+    // ---------- reset ----------
+    check("POST /reset without session -> 401", (await post("/reset", undefined, anon)).status === 401);
+
+    res = await post("/reset", undefined, alice);
+    check("POST /reset -> 200", res.status === 200, "got " + res.status);
+    check("reset returns the restored list, so the client needs no copy",
+        res.body && Array.isArray(res.body.movieData) && res.body.movieData.length === 100,
+        "got " + JSON.stringify(res.body && res.body.movieData && res.body.movieData.length));
+    check("restored list is the default, not what was there before",
+        res.body.movieData[0].movieTitle === "Citizen Kane", JSON.stringify(res.body.movieData[0]));
+    check("restored entries are unticked",
+        res.body.movieData.every((m) => !m.checked && !m.favorite));
+
+    const afterReset = await users.findOne({ userName: "alice" });
+    check("reset is persisted", afterReset.movieData.length === 100);
+    check("reset left credentials untouched",
+        typeof afterReset.hash === "string" && afterReset.userName === "alice");
+    check("reset did not touch the other account",
+        (await users.findOne({ userName: "bob" })).movieData[0].imdbId === "tt-bob");
+
+    // A caller must not be able to mutate the server's own default list
+    // through the copy it was handed.
+    res.body.movieData[0].movieTitle = "tampered";
+    const second = await post("/reset", undefined, alice);
+    check("the default list cannot be tampered with via a previous response",
+        second.body.movieData[0].movieTitle === "Citizen Kane", second.body.movieData[0].movieTitle);
+
+    // Put alice back to a one-entry list for the checks that follow.
+    await post("/update", { movieData: [{ imdbId: "tt-alice", movieTitle: "Alice only" }] }, alice);
+
     // ---------- update validation ----------
     check("POST /update non-array -> 400", (await post("/update", { movieData: "nope" }, alice)).status === 400);
     check("POST /update missing field -> 400", (await post("/update", {}, alice)).status === 400);
