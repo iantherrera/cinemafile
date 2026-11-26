@@ -46,11 +46,14 @@ export function AuthProvider({ children }) {
     const logout = useCallback(async () => {
         try {
             await api.logout();
-        } finally {
-            // Drop the local view of the session even if the request failed;
-            // leaving the UI signed in would be worse than signing out twice.
-            setUser(null);
+        } catch (err) {
+            // Swallowed, not rethrown. The local session is cleared either
+            // way, so there is nothing for the caller to do about it -- and
+            // rethrowing would strand callers mid-sign-out, leaving the button
+            // disabled and the redirect unrun.
+            console.warn('Sign-out request failed; clearing the session locally.', err);
         }
+        setUser(null);
     }, []);
 
     const value = useMemo(

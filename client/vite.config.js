@@ -12,4 +12,10 @@ export default defineConfig({
         // Matches the /build entry already in client/.gitignore.
         outDir: 'build',
     },
+    test: {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: './src/test/setup.js',
+        css: false,
+    },
 });
