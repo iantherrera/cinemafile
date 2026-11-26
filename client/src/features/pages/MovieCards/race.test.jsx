@@ -65,4 +65,28 @@ describe('concurrent saves', () => {
             expect(last.find((m) => m.imdbId === 'tt2').checked).toBe(true);
         });
     });
+
+    it('does not let a reset overtake a save that is still in flight', async () => {
+        // A reset that landed first would be undone a moment later by the
+        // save behind it, leaving the user looking at a list they just
+        // cleared.
+        const saves = [];
+        api.saveMovieData.mockImplementation(() => new Promise((resolve) => { saves.push(resolve); }));
+        api.resetMovieData.mockResolvedValue({ movieData: MOVIES.map((m) => ({ ...m })) });
+
+        render(
+            <MemoryRouter><AuthProvider><MovieCards /></AuthProvider></MemoryRouter>
+        );
+        await waitFor(() => expect(screen.getByText('Citizen Kane')).toBeInTheDocument());
+
+        await userEvent.click(viewedBox('Citizen Kane'));
+        await waitFor(() => expect(saves).toHaveLength(1));
+
+        await userEvent.click(screen.getByRole('button', { name: /reset list/i }));
+        expect(api.resetMovieData).not.toHaveBeenCalled();
+
+        saves[0]({ matchedCount: 1, modifiedCount: 1 });
+        await waitFor(() => expect(api.resetMovieData).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(viewedBox('Citizen Kane')).not.toBeChecked());
+    });
 });

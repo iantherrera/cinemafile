@@ -123,16 +123,18 @@ export default function MovieCards() {
   }, [movieData, applyMovieData]);
 
   // The server owns the default list and returns what it wrote, so nothing is
-  // uploaded and no local copy is needed.
-  const resetMovieData = useCallback(async () => {
+  // uploaded and no local copy is needed. Queued with the saves: a reset that
+  // overtook one would be undone by it a moment later.
+  const resetMovieData = useCallback(() => {
     setIsListView(false);
     setError(null);
-    try {
-      const { movieData: restored } = await api.resetMovieData();
-      setMovieData(restored);
-    } catch (err) {
-      handleApiError(err);
-    }
+
+    pendingSave.current = pendingSave.current
+      .then(() => api.resetMovieData())
+      .then(({ movieData: restored }) => setMovieData(restored))
+      .catch(handleApiError);
+
+    return pendingSave.current;
   }, [handleApiError]);
 
   return (
