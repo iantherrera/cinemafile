@@ -1,5 +1,6 @@
 const express = require("express");
 const { ObjectId } = require("mongodb");
+
 const dbObj = require("../db/conn");
 
 const userDataRoutes = express.Router();
@@ -8,7 +9,7 @@ const COLLECTION = "userData";
 
 // Credential material must never leave the server. Applied to every read of a
 // user document.
-const WITHOUT_CREDENTIALS = { password: 0, hash: 0, salt: 0 };
+const WITHOUT_CREDENTIALS = { hash: 0, salt: 0 };
 
 // Returns the collection, or null after responding 503 if the database is not
 // connected yet. getDb() is undefined until connectToServer resolves.
@@ -21,26 +22,20 @@ function getCollection(res) {
     return db.collection(COLLECTION);
 }
 
-// Mongo document ids are 24 hex characters. Matching that form directly rather
-// than calling ObjectId.isValid is deliberate: isValid's treatment of other
-// shapes changed across driver versions. v4 accepted a 12-character string and
-// quietly reinterpreted its bytes as a different id, while v6 rejects it. An
-// explicit check behaves identically on both and never guesses.
-const OBJECT_ID = /^[0-9a-fA-F]{24}$/;
-
-// Returns an ObjectId, or null after responding 400. A bare ObjectId() on
-// arbitrary input throws, which previously crashed the request.
-function parseId(req, res) {
-    if (!OBJECT_ID.test(req.params.id)) {
-        res.status(400).json({ error: "Invalid user id" });
+// The id comes from the signed-in session, never from the URL. Taking it from
+// the request would let anyone read or overwrite another account's list just
+// by changing the path.
+function requireSession(req, res) {
+    if (!req.session || !req.session.userId) {
+        res.status(401).json({ error: "Not signed in" });
         return null;
     }
-    return new ObjectId(req.params.id);
+    return new ObjectId(req.session.userId);
 }
 
-// Get a single record by id, minus credential fields.
-userDataRoutes.route("/userData/:id").get(async function (req, res) {
-    const id = parseId(req, res);
+// Read the signed-in user's movie list.
+userDataRoutes.route("/userData").get(async function (req, res) {
+    const id = requireSession(req, res);
     if (!id) return;
 
     const collection = getCollection(res);
@@ -65,9 +60,9 @@ userDataRoutes.route("/userData/:id").get(async function (req, res) {
     }
 });
 
-// Update a user's movie list by id.
-userDataRoutes.route("/update/:id").post(async function (req, res) {
-    const id = parseId(req, res);
+// Replace the signed-in user's movie list.
+userDataRoutes.route("/update").post(async function (req, res) {
+    const id = requireSession(req, res);
     if (!id) return;
 
     const { movieData } = req.body ?? {};

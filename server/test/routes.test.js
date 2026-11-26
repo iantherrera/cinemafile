@@ -1,58 +1,57 @@
-// Integration tests for the userData routes.
+// Integration tests for the auth and userData routes.
 //
 // These run against a real mongod started by mongodb-memory-server, using the
-// real driver and the real db/conn.js, so they exercise actual database
-// behaviour rather than a stub. That makes them the check that a driver
-// upgrade has changed nothing: the suite should pass unchanged before and
-// after.
+// real driver, the real db/conn.js and the app built by app.js -- the same
+// middleware stack the server runs, sessions included. Nothing is stubbed, so
+// the suite reflects actual behaviour and doubles as the check that a
+// dependency upgrade has changed nothing.
 //
 // Run with: npm test   (from the server directory)
 
 const http = require("http");
-const express = require("express");
-const { ObjectId } = require("mongodb");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 
 const dbObj = require("../db/conn");
 
 const PORT = 5099;
-const USER_ID = "6369d823852305533b133048";
-const OTHER_ID = "6369d823852305533b133099";
-
-const CREDENTIALS = {
-    password: "test-plaintext",
-    hash: "test-hash",
-    salt: "test-salt",
-};
-
-const SEED_MOVIES = [
-    { imdbId: "tt0033467", movieTitle: "Citizen Kane", checked: false, favorite: false },
-    { imdbId: "tt0068646", movieTitle: "The Godfather", checked: true, favorite: false },
-];
 
 let mongod;
 let httpServer;
-let collection;
+let users;
 const results = [];
 
 function check(name, pass, detail) {
     results.push({ name, pass: !!pass, detail });
 }
 
-function request(method, path, body) {
+// A tiny cookie jar, so a "session" in these tests is a real cookie round trip
+// rather than something reached into directly.
+function newJar() {
+    return { cookie: null };
+}
+
+function request(method, path, body, jar) {
     return new Promise((resolve, reject) => {
         const payload = body === undefined ? null : JSON.stringify(body);
-        const headers = payload
-            ? { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) }
-            : {};
+        const headers = {};
+        if (payload) {
+            headers["Content-Type"] = "application/json";
+            headers["Content-Length"] = Buffer.byteLength(payload);
+        }
+        if (jar && jar.cookie) headers["Cookie"] = jar.cookie;
 
         const req = http.request({ host: "localhost", port: PORT, path, method, headers }, (res) => {
+            const setCookie = res.headers["set-cookie"];
+            if (jar && setCookie && setCookie.length) {
+                jar.cookie = setCookie.map((c) => c.split(";")[0]).join("; ");
+            }
+
             let data = "";
             res.on("data", (chunk) => { data += chunk; });
             res.on("end", () => {
                 let parsed = null;
-                try { parsed = JSON.parse(data); } catch (err) { /* non-JSON body */ }
-                resolve({ status: res.statusCode, body: parsed });
+                try { parsed = JSON.parse(data); } catch (err) { /* empty or non-JSON */ }
+                resolve({ status: res.statusCode, body: parsed, setCookie });
             });
         });
 
@@ -62,32 +61,39 @@ function request(method, path, body) {
     });
 }
 
-const get = (path) => request("GET", path);
-const post = (path, body) => request("POST", path, body);
+const get = (path, jar) => request("GET", path, undefined, jar);
+const post = (path, body, jar) => request("POST", path, body, jar);
 
-async function reseed() {
-    await collection.deleteMany({});
-    await collection.insertOne({
-        _id: new ObjectId(USER_ID),
-        userName: "user1",
-        password: CREDENTIALS.password,
-        hash: CREDENTIALS.hash,
-        salt: CREDENTIALS.salt,
-        movieData: SEED_MOVIES.map((m) => Object.assign({}, m)),
-    });
+// Windows reserves blocks inside the dynamic port range (Hyper-V and WSL claim
+// them), and binding one fails with EACCES. mongodb-memory-server picks a
+// random dynamic port and does not retry when it lands in a reserved block, so
+// choose from the range below 49152 instead, where no such reservations exist.
+const MONGOD_PORTS = [47017, 47018, 47019, 47020, 47021];
+
+async function startMongod() {
+    let lastError;
+    for (const port of MONGOD_PORTS) {
+        try {
+            return await MongoMemoryServer.create({ instance: { port } });
+        } catch (err) {
+            lastError = err;
+            if (err && (err.code === "EACCES" || err.code === "EADDRINUSE")) continue;
+            throw err;
+        }
+    }
+    throw lastError;
 }
 
 async function setup() {
-    mongod = await MongoMemoryServer.create();
+    mongod = await startMongod();
     process.env.ATLAS_URI = mongod.getUri();
+    process.env.SESSION_SECRET = "test-secret-not-used-anywhere-real";
 
     const db = await dbObj.connectToServer();
-    collection = db.collection("userData");
+    users = db.collection("userData");
 
-    const app = express();
-    app.use(express.json());
-    app.use(require("../routes/userData"));
-    app.use((req, res) => res.status(404).json({ error: "Not found" }));
+    const { createApp } = require("../app");
+    const app = createApp({ mongoUrl: mongod.getUri() });
 
     await new Promise((resolve) => { httpServer = app.listen(PORT, resolve); });
 }
@@ -99,82 +105,118 @@ async function teardown() {
 }
 
 async function run() {
-    await reseed();
+    // ---------- registration ----------
+    const alice = newJar();
+    let res = await post("/auth/register", { userName: "Alice", password: "correct horse battery" }, alice);
+    check("register -> 201", res.status === 201, "got " + res.status + " " + JSON.stringify(res.body));
+    check("register returns the user", res.body && res.body.user && res.body.user.userName === "alice",
+        "username should be normalised to lowercase: " + JSON.stringify(res.body));
+    check("register sets a session cookie", Array.isArray(res.setCookie) && res.setCookie.length > 0);
+    check("session cookie is httpOnly",
+        res.setCookie && /httponly/i.test(res.setCookie[0]), res.setCookie && res.setCookie[0]);
+    check("register response leaks no credential fields",
+        res.body && res.body.user && !("hash" in res.body.user) && !("salt" in res.body.user) && !("password" in res.body.user),
+        JSON.stringify(res.body && res.body.user));
 
-    // --- reads ---
-    let res = await get("/userData/" + USER_ID);
-    check("GET existing user -> 200", res.status === 200, "got " + res.status);
-    check("response carries movieData", Array.isArray(res.body && res.body.movieData));
-    check(
-        "movieData round-trips intact",
-        res.body && res.body.movieData.length === 2 && res.body.movieData[0].movieTitle === "Citizen Kane",
-        JSON.stringify(res.body && res.body.movieData)
-    );
+    const stored = await users.findOne({ userName: "alice" });
+    check("password is not stored in plaintext",
+        stored && !("password" in stored) && typeof stored.hash === "string" && typeof stored.salt === "string",
+        JSON.stringify(stored && Object.keys(stored)));
+    check("stored hash does not contain the password",
+        stored && !stored.hash.includes("correct"), "hash must not be reversible to the input");
+    check("new account is seeded with the default list",
+        stored && Array.isArray(stored.movieData) && stored.movieData.length === 100,
+        "got " + (stored && stored.movieData && stored.movieData.length));
 
-    const leaked = Object.keys(CREDENTIALS).filter((f) => res.body && f in res.body);
-    check("no password, hash or salt in the response", leaked.length === 0, "leaked: " + leaked.join(", "));
+    // ---------- registration validation ----------
+    res = await post("/auth/register", { userName: "alice", password: "another password" }, newJar());
+    check("duplicate username -> 409", res.status === 409, "got " + res.status);
 
-    // The projection must hide those fields, not delete them.
-    const stored = await collection.findOne({ _id: new ObjectId(USER_ID) });
-    check(
-        "credentials still present in the database",
-        stored.password === CREDENTIALS.password && stored.hash === CREDENTIALS.hash && stored.salt === CREDENTIALS.salt,
-        "projection should hide fields, not remove them"
-    );
+    res = await post("/auth/register", { userName: "ALICE", password: "another password" }, newJar());
+    check("duplicate differing only by case -> 409", res.status === 409, "got " + res.status);
 
-    res = await get("/userData/" + OTHER_ID);
-    check("GET unknown user -> 404", res.status === 404, "got " + res.status);
+    res = await post("/auth/register", { userName: "ok_name", password: "short" }, newJar());
+    check("short password -> 400", res.status === 400, "got " + res.status);
 
-    // --- id validation (v4 and v6 disagree about 12-character strings) ---
-    const badIds = [
-        ["12-char string", "123456789012"],
-        ["11-char string", "12345678901"],
-        ["23 hex chars", "6369d823852305533b13304"],
-        ["non-hex", "zzzzzzzzzzzzzzzzzzzzzzzz"],
-        ["encoded space", "%20"],
-    ];
-    for (const entry of badIds) {
-        const r = await get("/userData/" + entry[1]);
-        check("malformed id rejected: " + entry[0] + " -> 400", r.status === 400, "got " + r.status);
-    }
+    res = await post("/auth/register", { userName: "ab", password: "long enough password" }, newJar());
+    check("username under 3 chars -> 400", res.status === 400, "got " + res.status);
 
-    // --- writes ---
-    const newList = [{ imdbId: "tt0033467", movieTitle: "Citizen Kane", checked: true, favorite: true }];
-    res = await post("/update/" + USER_ID, { movieData: newList });
-    check("POST valid update -> 200", res.status === 200, "got " + res.status);
-    check("reports one document matched", res.body && res.body.matchedCount === 1, JSON.stringify(res.body));
+    res = await post("/auth/register", { userName: "bad name!", password: "long enough password" }, newJar());
+    check("username with illegal characters -> 400", res.status === 400, "got " + res.status);
 
-    const after = await collection.findOne({ _id: new ObjectId(USER_ID) });
-    check(
-        "database actually updated",
-        after.movieData.length === 1 && after.movieData[0].checked === true && after.movieData[0].favorite === true,
-        JSON.stringify(after.movieData)
-    );
-    check(
-        "update left credentials untouched",
-        after.password === CREDENTIALS.password && after.hash === CREDENTIALS.hash && after.salt === CREDENTIALS.salt,
-        "the $set must only touch movieData"
-    );
-    check("update left userName untouched", after.userName === "user1", "got " + after.userName);
+    res = await post("/auth/register", {}, newJar());
+    check("empty registration body -> 400", res.status === 400, "got " + res.status);
 
-    res = await post("/update/" + USER_ID, { movieData: "not-an-array" });
-    check("POST non-array movieData -> 400", res.status === 400, "got " + res.status);
+    // ---------- the session actually works ----------
+    res = await get("/auth/me", alice);
+    check("GET /auth/me with session -> 200", res.status === 200, "got " + res.status);
+    check("/auth/me returns the right user", res.body && res.body.user.userName === "alice");
 
-    res = await post("/update/" + USER_ID, {});
-    check("POST missing movieData -> 400", res.status === 400, "got " + res.status);
+    res = await get("/userData", alice);
+    check("GET /userData with session -> 200", res.status === 200, "got " + res.status);
+    check("returns the seeded list", res.body && res.body.movieData.length === 100);
+    check("no credential fields in the data response",
+        res.body && !("hash" in res.body) && !("salt" in res.body),
+        JSON.stringify(res.body && Object.keys(res.body)));
 
-    res = await post("/update/" + OTHER_ID, { movieData: [] });
-    check("POST unknown user -> 404", res.status === 404, "got " + res.status);
+    // ---------- unauthenticated access is refused ----------
+    const anon = newJar();
+    check("GET /userData without session -> 401", (await get("/userData", anon)).status === 401);
+    check("POST /update without session -> 401", (await post("/update", { movieData: [] }, anon)).status === 401);
+    check("GET /auth/me without session -> 401", (await get("/auth/me", anon)).status === 401);
 
-    res = await post("/update/123456789012", { movieData: [] });
-    check("POST malformed id -> 400", res.status === 400, "got " + res.status);
+    // ---------- login ----------
+    const alice2 = newJar();
+    res = await post("/auth/login", { userName: "alice", password: "wrong password" }, alice2);
+    check("wrong password -> 401", res.status === 401, "got " + res.status);
+    check("wrong password gives nothing away",
+        res.body && res.body.error === "Incorrect username or password", JSON.stringify(res.body));
 
-    // --- misc ---
-    res = await get("/no-such-route");
-    check("unknown route -> 404", res.status === 404, "got " + res.status);
+    res = await post("/auth/login", { userName: "nobody", password: "wrong password" }, alice2);
+    check("unknown user -> 401", res.status === 401, "got " + res.status);
+    check("unknown user and wrong password are indistinguishable",
+        res.body && res.body.error === "Incorrect username or password", JSON.stringify(res.body));
 
-    res = await get("/userData/" + USER_ID);
-    check("server still answering after every error", res.status === 200, "got " + res.status);
+    res = await post("/auth/login", { userName: "ALICE", password: "correct horse battery" }, alice2);
+    check("login is case-insensitive -> 200", res.status === 200, "got " + res.status);
+    check("login returns the user", res.body && res.body.user.userName === "alice");
+    check("logged-in session reads data", (await get("/userData", alice2)).status === 200);
+
+    // ---------- one user cannot reach another's data ----------
+    const bob = newJar();
+    res = await post("/auth/register", { userName: "bob", password: "bobs long password" }, bob);
+    check("second account registers -> 201", res.status === 201, "got " + res.status);
+
+    await post("/update", { movieData: [{ imdbId: "tt-bob", movieTitle: "Bob only" }] }, bob);
+    await post("/update", { movieData: [{ imdbId: "tt-alice", movieTitle: "Alice only" }] }, alice);
+
+    const bobSees = await get("/userData", bob);
+    const aliceSees = await get("/userData", alice);
+    check("each session sees only its own list",
+        bobSees.body.movieData[0].imdbId === "tt-bob" && aliceSees.body.movieData[0].imdbId === "tt-alice",
+        "bob: " + JSON.stringify(bobSees.body.movieData) + " alice: " + JSON.stringify(aliceSees.body.movieData));
+
+    const aliceDoc = await users.findOne({ userName: "alice" });
+    const bobDoc = await users.findOne({ userName: "bob" });
+    check("writes landed on the right documents",
+        aliceDoc.movieData[0].imdbId === "tt-alice" && bobDoc.movieData[0].imdbId === "tt-bob");
+    check("update left credentials untouched",
+        typeof aliceDoc.hash === "string" && typeof aliceDoc.salt === "string" && aliceDoc.userName === "alice");
+
+    // ---------- update validation ----------
+    check("POST /update non-array -> 400", (await post("/update", { movieData: "nope" }, alice)).status === 400);
+    check("POST /update missing field -> 400", (await post("/update", {}, alice)).status === 400);
+
+    // ---------- logout ----------
+    res = await post("/auth/logout", undefined, bob);
+    check("logout -> 204", res.status === 204, "got " + res.status);
+    check("session is dead after logout", (await get("/userData", bob)).status === 401);
+    check("/auth/me is 401 after logout", (await get("/auth/me", bob)).status === 401);
+    check("alice's session survives bob's logout", (await get("/userData", alice)).status === 200);
+
+    // ---------- misc ----------
+    check("unknown route -> 404", (await get("/no-such-route", alice)).status === 404);
+    check("server still answering after every error", (await get("/userData", alice)).status === 200);
 }
 
 (async () => {

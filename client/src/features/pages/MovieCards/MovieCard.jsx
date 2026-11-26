@@ -1,14 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Header from '../../Header';
 import ScrollButton from './ScrollButton';
 import initMovieData from '../../../initData/initMovieData.json';
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-// TODO: take this from the signed-in session once login exists. Until then the
-// server has no auth and every client reads the same record.
-const USER_ID = "6369d823852305533b133048";
+import { api } from '../../auth/api';
+import { useAuth } from '../../auth/AuthContext';
 
 // Movie card template. Checkboxes are controlled, so the rendered state always
 // reflects movieData rather than whatever the browser last did to the DOM.
@@ -63,51 +60,40 @@ const MovieCard = ({ metaData, toggleViewed, toggleFavorite, deleteMovie }) => (
 
 // Functional component to render movie cards in app
 export default function MovieCards() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const [movieData, setMovieData] = useState([]);
   const [isListView, setIsListView] = useState(false);
   const [error, setError] = useState(null);
 
-  // Persist the list. The update route only reads movieData, so that is all we
-  // send -- the full record would round-trip the account's password material
-  // back to the server for no reason.
-  const saveMovieData = useCallback(async (nextMovieData) => {
-    const response = await fetch(`${API_BASE}/update/${USER_ID}`, {
-      method: "POST",
-      body: JSON.stringify({ movieData: nextMovieData }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!response.ok) {
-      throw new Error(`Could not save changes (${response.status})`);
+  // A session can expire while the page is open. When the server says so,
+  // clear the stale local state and send the user to sign in again rather
+  // than showing a list they can no longer save.
+  const handleApiError = useCallback(async (err) => {
+    if (err.status === 401) {
+      await logout();
+      navigate("/login", { replace: true });
+      return;
     }
-  }, []);
+    setError(err.message);
+  }, [logout, navigate]);
 
-  // Load the list once on mount.
+  // Load the list once on mount. Which user it belongs to is decided by the
+  // session cookie, so there is no id to pass.
   useEffect(() => {
     let cancelled = false;
 
-    async function getUserData() {
-      try {
-        const response = await fetch(`${API_BASE}/userData/${USER_ID}`);
-        if (!response.ok) {
-          throw new Error(`Could not load your list (${response.status})`);
-        }
-        const user = await response.json();
-        if (!cancelled) {
-          setMovieData(Array.isArray(user?.movieData) ? user.movieData : []);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err.message);
-        }
-      }
-    }
+    api.getUserData()
+      .then((user) => {
+        if (!cancelled) setMovieData(Array.isArray(user?.movieData) ? user.movieData : []);
+      })
+      .catch((err) => {
+        if (!cancelled) handleApiError(err);
+      });
 
-    getUserData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    return () => { cancelled = true; };
+  }, [handleApiError]);
 
   // Replace the list with a new array and persist it. Every caller builds its
   // next value immutably, so React always sees a fresh reference and re-renders.
@@ -115,11 +101,11 @@ export default function MovieCards() {
     setMovieData(nextMovieData);
     setError(null);
     try {
-      await saveMovieData(nextMovieData);
+      await api.saveMovieData(nextMovieData);
     } catch (err) {
-      setError(err.message);
+      handleApiError(err);
     }
-  }, [saveMovieData]);
+  }, [handleApiError]);
 
   const toggleViewed = useCallback((imdbId) => {
     applyMovieData(movieData.map((movie) => (

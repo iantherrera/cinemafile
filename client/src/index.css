@@ -599,3 +599,19 @@ label input {
     font-size: 1.6vh;
   }
 }
+.formFooter {
+  font-family: 'Faustina', serif;
+  text-align: center;
+  margin: 1em 0 0;
+}
+
+.formFooter a {
+  color: var(--color4);
+  font-weight: 600;
+}
+
+nav a.navButton {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

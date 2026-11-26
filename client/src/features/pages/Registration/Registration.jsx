@@ -1,39 +1,107 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
 import Header from "../../Header";
+import { useAuth } from "../../auth/AuthContext";
 
-function handleSubmit(e) {
-    e.preventDefault();
-    /* console.log(value); */
-}
+// Kept in step with validatePassword on the server. The server is the one that
+// decides; this only saves a round trip and gives a faster answer.
+const MIN_PASSWORD_LENGTH = 8;
 
-const RegistrationForm = () => {
+export default function RegistrationForm() {
+    const { register } = useAuth();
+    const navigate = useNavigate();
+
+    const [userName, setUserName] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        if (submitting) return;
+
+        if (password !== confirmPassword) {
+            setError("Those passwords do not match");
+            return;
+        }
+        if (password.length < MIN_PASSWORD_LENGTH) {
+            setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+            return;
+        }
+
+        setError(null);
+        setSubmitting(true);
+
+        try {
+            await register(userName, password);
+            navigate("/", { replace: true });
+        } catch (err) {
+            setError(err.message);
+            setSubmitting(false);
+        }
+    }
+
     return (
-        <>
+        <div id="page">
             <Header />
+            <div id="bgWrap"></div>
             <div id="registrationFormContainer">
                 <form id="registrationForm" onSubmit={handleSubmit}>
+                    {error && <div className="errorMessage" role="alert">{error}</div>}
+
                     <div className="registrationInputContainer">
-                        <label id="usernameLabel" for="username">Username: </label>
-                        <input type="text" name="username" id="username" required />
-                        {/* {renderErrorMessage("userName")} */}
+                        <label id="usernameLabel" htmlFor="username">Username: </label>
+                        <input
+                            type="text"
+                            name="username"
+                            id="username"
+                            autoComplete="username"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            required
+                        />
                     </div>
+
                     <div className="registrationInputContainer">
-                        <label for="firstPassword">Password: </label>
-                        <input type="text" name="firstPassword" id="firstPassword" required />
-                        {/* {renderErrorMessage("password")} */}
+                        <label htmlFor="firstPassword">Password: </label>
+                        <input
+                            type="password"
+                            name="firstPassword"
+                            id="firstPassword"
+                            autoComplete="new-password"
+                            minLength={MIN_PASSWORD_LENGTH}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
                     </div>
+
                     <div className="registrationInputContainer">
-                        <label for="secondPassword">Confirm Password: </label>
-                        <input type="text" name="secondPassword" id="secondPassword" required />
-                        {/* {renderErrorMessage("password")} */}
+                        <label htmlFor="secondPassword">Confirm Password: </label>
+                        <input
+                            type="password"
+                            name="secondPassword"
+                            id="secondPassword"
+                            autoComplete="new-password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
                     </div>
+
                     <div>
-                        <button className="navButton" type="submit">Register</button>
+                        <button className="navButton" type="submit" disabled={submitting}>
+                            {submitting ? "Creating..." : "Register"}
+                        </button>
                     </div>
+
+                    <p className="formFooter">
+                        Already registered? <Link to="/login">Login</Link>
+                    </p>
                 </form>
             </div>
-        </>
-    )
-};
-
-export default RegistrationForm;
+        </div>
+    );
+}

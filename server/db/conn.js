@@ -22,6 +22,15 @@ module.exports = {
         client = new MongoClient(uri);
         await client.connect();
         _db = client.db(DB_NAME);
+
+        // Enforced by the database so two simultaneous registrations cannot
+        // both pass a check and both insert. Partial, so it ignores any
+        // document without a userName rather than treating them as duplicates.
+        await _db.collection("userData").createIndex(
+            { userName: 1 },
+            { unique: true, partialFilterExpression: { userName: { $type: "string" } } }
+        );
+
         console.log(`Connected to MongoDB database "${DB_NAME}".`);
         return _db;
     },
