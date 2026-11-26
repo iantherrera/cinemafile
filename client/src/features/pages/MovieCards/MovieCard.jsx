@@ -6,8 +6,31 @@ import ScrollButton from './ScrollButton';
 import { api } from '../../auth/api';
 import { useAuth } from '../../auth/AuthContext';
 
+// 342px wide is the smallest TMDB size that still looks sharp in the grid, and
+// list view reuses the same URL so the thumbnail costs no extra request.
+const posterUrl = (posterPath) => `https://image.tmdb.org/t/p/w342${posterPath}`;
+
 const MovieCard = ({ metaData, toggleViewed, toggleFavorite, deleteMovie }) => (
-  <div className="movieCard">
+  <article className="movieCard">
+    <div className='moviePosterContainer'>
+      <img
+        src={posterUrl(metaData.posterPath)}
+        alt={`${metaData.movieTitle} poster`}
+        className='posterImg'
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+    <div className='movieInfoContainer'>
+      <div className="rank">{metaData.rank}</div>
+      <div className='titleYearContainer'>
+        <h2 className='title'>{metaData.movieTitle}</h2>
+        <div className='year'>{metaData.year}</div>
+      </div>
+    </div>
+    <p className='synopsis'>
+      {metaData.overview}
+    </p>
     <div className='cardOptionsContainer'>
       <div className='viewedCheckContainer'>
         <label className="checkLabel">
@@ -34,25 +57,14 @@ const MovieCard = ({ metaData, toggleViewed, toggleFavorite, deleteMovie }) => (
       <div className='deleteCardContainer'>
         <button className="deleteButton" type="button"
           onClick={() => deleteMovie(metaData.imdbId)}
+          aria-label={`Delete ${metaData.movieTitle}`}
+          title={`Delete ${metaData.movieTitle}`}
         >
-          Delete
+          <span aria-hidden="true">✕</span>
         </button>
       </div>
     </div>
-    <div className='movieInfoContainer'>
-      <div className="rank">{metaData.rank}</div>
-      <div className='titleYearContainer'>
-        <div className='title'>{metaData.movieTitle}</div>
-        <div className='year'>{metaData.year}</div>
-      </div>
-    </div>
-    <div className='moviePosterContainer'>
-      <img src={`https://image.tmdb.org/t/p/original/${metaData.posterPath}`} alt={`${metaData.movieTitle} poster`} className='posterImg' />
-    </div>
-    <div className='synopsis'>
-      {metaData.overview}
-    </div>
-  </div>
+  </article>
 );
 
 export default function MovieCards() {
@@ -142,7 +154,7 @@ export default function MovieCards() {
       <Header isListView={isListView} setIsListView={setIsListView} onReset={resetMovieData} />
       <div id="bgWrap"></div>
       {error && <div className="errorMessage" role="alert">{error}</div>}
-      <div id={isListView ? 'listViewContainer' : 'movieCardsContainer'} className="contentContainer">
+      <div id={isListView ? 'listViewContainer' : 'movieCardsContainer'}>
         {movieData.map((metaData) => (
           <MovieCard
             metaData={metaData}

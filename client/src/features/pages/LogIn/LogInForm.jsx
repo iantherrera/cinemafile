@@ -35,10 +35,15 @@ export default function LoginForm() {
             <div id="bgWrap"></div>
             <div id="loginFormContainer">
                 <form id="loginForm" onSubmit={handleSubmit}>
+                    <div className="formHeading">
+                        <h2 className="formTitle">Welcome back</h2>
+                        <p className="formLede">Sign in to pick up your list.</p>
+                    </div>
+
                     {error && <div className="errorMessage" role="alert">{error}</div>}
 
                     <div className="loginInputContainer">
-                        <label id="usernameLabel" htmlFor="username">Username: </label>
+                        <label id="usernameLabel" htmlFor="username">Username</label>
                         <input
                             type="text"
                             name="username"
@@ -51,7 +56,7 @@ export default function LoginForm() {
                     </div>
 
                     <div className="loginInputContainer">
-                        <label htmlFor="password">Password: </label>
+                        <label htmlFor="password">Password</label>
                         <input
                             type="password"
                             name="password"
@@ -63,8 +68,8 @@ export default function LoginForm() {
                         />
                     </div>
 
-                    <div>
-                        <button className="navButton" type="submit" disabled={submitting}>
+                    <div className="formActions">
+                        <button className="navButton primary" type="submit" disabled={submitting}>
                             {submitting ? "Signing in..." : "Login"}
                         </button>
                     </div>

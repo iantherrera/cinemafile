@@ -28,3 +28,6 @@ yarn-error.log*
 *.env
 !.env.example
 !*.env.example
+
+# local editor/tooling config
+.claude/

@@ -49,10 +49,15 @@ export default function RegistrationForm() {
             <div id="bgWrap"></div>
             <div id="registrationFormContainer">
                 <form id="registrationForm" onSubmit={handleSubmit}>
+                    <div className="formHeading">
+                        <h2 className="formTitle">Create an account</h2>
+                        <p className="formLede">You start with the full AFI top 100.</p>
+                    </div>
+
                     {error && <div className="errorMessage" role="alert">{error}</div>}
 
                     <div className="registrationInputContainer">
-                        <label id="usernameLabel" htmlFor="username">Username: </label>
+                        <label id="usernameLabel" htmlFor="username">Username</label>
                         <input
                             type="text"
                             name="username"
@@ -65,7 +70,7 @@ export default function RegistrationForm() {
                     </div>
 
                     <div className="registrationInputContainer">
-                        <label htmlFor="firstPassword">Password: </label>
+                        <label htmlFor="firstPassword">Password</label>
                         <input
                             type="password"
                             name="firstPassword"
@@ -79,7 +84,7 @@ export default function RegistrationForm() {
                     </div>
 
                     <div className="registrationInputContainer">
-                        <label htmlFor="secondPassword">Confirm Password: </label>
+                        <label htmlFor="secondPassword">Confirm password</label>
                         <input
                             type="password"
                             name="secondPassword"
@@ -91,8 +96,8 @@ export default function RegistrationForm() {
                         />
                     </div>
 
-                    <div>
-                        <button className="navButton" type="submit" disabled={submitting}>
+                    <div className="formActions">
+                        <button className="navButton primary" type="submit" disabled={submitting}>
                             {submitting ? "Creating..." : "Register"}
                         </button>
                     </div>

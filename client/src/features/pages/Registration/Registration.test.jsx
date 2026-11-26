@@ -24,7 +24,7 @@ async function renderForm() {
 
 const submit = async (userName, password, confirm) => {
     await userEvent.type(screen.getByLabelText(/username/i), userName);
-    await userEvent.type(screen.getByLabelText(/^password:/i), password);
+    await userEvent.type(screen.getByLabelText(/^password$/i), password);
     await userEvent.type(screen.getByLabelText(/confirm password/i), confirm);
     await userEvent.click(screen.getByRole('button', { name: /^register$/i }));
 };

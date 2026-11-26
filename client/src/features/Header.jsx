@@ -11,9 +11,7 @@ export default function Header({ isListView, setIsListView, onReset }) {
 
     return (
         <header>
-            <div id="siteTitleContainer">
-                <h1 id="siteTitle">cinemafile</h1>
-            </div>
+            <h1 id="siteTitle">cinemafile</h1>
             <nav>
                 {user ? (
                     <>

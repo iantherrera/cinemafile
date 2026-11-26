@@ -16,17 +16,20 @@ const ScrollButton = () => {
     }, []);
 
     const scrollToTop = () => {
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
         window.scrollTo({
             top: 0,
-            behavior: 'smooth'
+            behavior: reducedMotion ? 'auto' : 'smooth'
         });
     };
 
+    if (!visible) return null;
+
     return (
         <div className='scrollButtonContainer'>
-            <button id="topScrollButton" type="button" onClick={scrollToTop}
-                style={{ display: visible ? 'inline' : 'none' }}>
-                ^ Top of List ^
+            <button id="topScrollButton" type="button" onClick={scrollToTop}>
+                <span aria-hidden="true">↑</span> Top
             </button>
         </div>
     );
