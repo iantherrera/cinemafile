@@ -7,6 +7,8 @@ const session = require("express-session");
 // itself has no .create.
 const { MongoStore } = require("connect-mongo");
 
+const { createLimiters } = require("./auth/rateLimit");
+
 const DAY = 24 * 60 * 60;
 const SESSION_DAYS = 14;
 
@@ -34,6 +36,20 @@ function createApp(options = {}) {
     const mongoUrl = options.mongoUrl || process.env.ATLAS_URI;
 
     const app = express();
+
+    // Behind a reverse proxy every request arrives from the proxy, so req.ip
+    // would be the same for everyone and the per-IP rate limits would behave
+    // as one global limit. Setting this tells Express how many hops to trust
+    // when reading X-Forwarded-For.
+    //
+    // It is opt-in and takes a hop count or a subnet rather than defaulting to
+    // true, because trusting the header unconditionally lets a client forge
+    // its own address and step around the very limits below.
+    const trustProxy = options.trustProxy ?? process.env.TRUST_PROXY;
+    if (trustProxy !== undefined && trustProxy !== "") {
+        const hops = Number(trustProxy);
+        app.set("trust proxy", Number.isFinite(hops) ? hops : trustProxy);
+    }
 
     // credentials: true is what allows the browser to send the session cookie
     // on a cross-origin request, and it requires an explicit origin -- the
@@ -66,6 +82,13 @@ function createApp(options = {}) {
             },
         })
     );
+
+    // Applied before the router so a blocked request never reaches scrypt,
+    // which is the expensive part an attacker would otherwise be spending the
+    // server's CPU on.
+    const limiters = createLimiters(options.rateLimits);
+    app.use("/auth/login", limiters.login);
+    app.use("/auth/register", limiters.register);
 
     app.use(require("./routes/auth"));
     app.use(require("./routes/userData"));

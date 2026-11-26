@@ -93,7 +93,13 @@ async function setup() {
     users = db.collection("userData");
 
     const { createApp } = require("../app");
-    const app = createApp({ mongoUrl: mongod.getUri() });
+
+    // The limits are exercised separately, on their own app with small values.
+    // Leaving the defaults here would have the rest of the suite trip them.
+    const app = createApp({
+        mongoUrl: mongod.getUri(),
+        rateLimits: { loginMax: 10000, registerMax: 10000 },
+    });
 
     await new Promise((resolve) => { httpServer = app.listen(PORT, resolve); });
 }
@@ -217,6 +223,141 @@ async function run() {
     // ---------- misc ----------
     check("unknown route -> 404", (await get("/no-such-route", alice)).status === 404);
     check("server still answering after every error", (await get("/userData", alice)).status === 200);
+
+    await runRateLimitChecks();
+}
+
+// The limits run on their own app instance with deliberately tiny values, so
+// the behaviour can be observed without making the rest of the suite fight it.
+const LIMITED_PORT = 5098;
+const LOGIN_MAX = 3;
+const REGISTER_MAX = 2;
+
+// Each scenario gets a fresh app, because the limiter counts in memory and a
+// tripped limit would otherwise leak into the next scenario.
+async function withLimitedApp(limits, body) {
+    const { createApp } = require("../app");
+    const app = createApp({ mongoUrl: mongod.getUri(), rateLimits: limits });
+
+    let server;
+    await new Promise((resolve) => { server = app.listen(LIMITED_PORT, resolve); });
+
+    try {
+        return await body(makeCaller());
+    } finally {
+        await new Promise((resolve) => server.close(resolve));
+    }
+}
+
+function makeCaller() {
+    return (method, path, body) => new Promise((resolve, reject) => {
+        const payload = body === undefined ? null : JSON.stringify(body);
+        const headers = payload
+            ? { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) }
+            : {};
+        const req = http.request({ host: "localhost", port: LIMITED_PORT, path, method, headers }, (res) => {
+            let data = "";
+            res.on("data", (c) => { data += c; });
+            res.on("end", () => {
+                let parsed = null;
+                try { parsed = JSON.parse(data); } catch (err) { /* empty */ }
+                resolve({ status: res.statusCode, body: parsed, headers: res.headers });
+            });
+        });
+        req.on("error", reject);
+        if (payload) req.write(payload);
+        req.end();
+    });
+}
+
+const WRONG = { userName: "alice", password: "definitely wrong" };
+const RIGHT = { userName: "alice", password: "correct horse battery" };
+
+async function runRateLimitChecks() {
+    // --- failures are counted, successes are not ---
+    await withLimitedApp({ loginMax: LOGIN_MAX, registerMax: 10000 }, async (call) => {
+        const first = await call("POST", "/auth/login", WRONG);
+        const second = await call("POST", "/auth/login", WRONG);
+        check("failed logins under the limit -> 401",
+            first.status === 401 && second.status === 401, `${first.status}, ${second.status}`);
+
+        const good = await call("POST", "/auth/login", RIGHT);
+        check("a correct password still works under the limit", good.status === 200,
+            "got " + good.status + " " + JSON.stringify(good.body));
+
+        // If the success had been counted, this third failure would be the
+        // fourth request and would already be blocked.
+        const third = await call("POST", "/auth/login", WRONG);
+        check("a success does not consume the allowance", third.status === 401, "got " + third.status);
+
+        const fourth = await call("POST", "/auth/login", WRONG);
+        check(`failure past ${LOGIN_MAX} -> 429`, fourth.status === 429, "got " + fourth.status);
+
+        check("the 429 explains itself", fourth.body && typeof fourth.body.error === "string",
+            JSON.stringify(fourth.body));
+        check("the 429 carries a RateLimit header",
+            Object.keys(fourth.headers).some((h) => h.startsWith("ratelimit")),
+            JSON.stringify(Object.keys(fourth.headers)));
+
+        // Worth pinning down rather than assuming: once the limit is hit the
+        // limiter answers before the route runs, so the password is never
+        // checked and even the right one is refused until the window passes.
+        // That is the intended trade -- it is also why the production limit is
+        // 10 rather than 3.
+        const rightWhileBlocked = await call("POST", "/auth/login", RIGHT);
+        check("once blocked, even a correct password is refused until the window passes",
+            rightWhileBlocked.status === 429, "got " + rightWhileBlocked.status);
+
+        const other = await call("GET", "/userData");
+        check("the limiter does not touch other routes", other.status === 401, "got " + other.status);
+    });
+
+    // --- the documented way to configure this is the environment, not the
+    // --- options object the scenarios above use, so check that path too ---
+    const savedLogin = process.env.LOGIN_RATE_LIMIT;
+    process.env.LOGIN_RATE_LIMIT = "2";
+    try {
+        await withLimitedApp(undefined, async (call) => {
+            const codes = [];
+            for (let i = 0; i < 3; i++) {
+                codes.push((await call("POST", "/auth/login", WRONG)).status);
+            }
+            check("LOGIN_RATE_LIMIT from the environment is honoured",
+                codes[0] === 401 && codes[1] === 401 && codes[2] === 429, JSON.stringify(codes));
+        });
+    } finally {
+        if (savedLogin === undefined) delete process.env.LOGIN_RATE_LIMIT;
+        else process.env.LOGIN_RATE_LIMIT = savedLogin;
+    }
+
+    // --- an unparseable value must not disable the limit ---
+    const savedJunk = process.env.LOGIN_RATE_LIMIT;
+    process.env.LOGIN_RATE_LIMIT = "not-a-number";
+    try {
+        await withLimitedApp(undefined, async (call) => {
+            const r = await call("POST", "/auth/login", WRONG);
+            check("a junk LOGIN_RATE_LIMIT falls back to the default rather than disabling the limit",
+                r.status === 401, "got " + r.status);
+        });
+    } finally {
+        if (savedJunk === undefined) delete process.env.LOGIN_RATE_LIMIT;
+        else process.env.LOGIN_RATE_LIMIT = savedJunk;
+    }
+
+    // --- registration limit, on a fresh counter ---
+    await withLimitedApp({ loginMax: 10000, registerMax: REGISTER_MAX }, async (call) => {
+        const codes = [];
+        for (let i = 0; i < REGISTER_MAX + 1; i++) {
+            const r = await call("POST", "/auth/register", {
+                userName: "ratelimited" + i,
+                password: "a long enough password",
+            });
+            codes.push(r.status);
+        }
+        check(`first ${REGISTER_MAX} registrations are answered normally`,
+            codes.slice(0, REGISTER_MAX).every((c) => c === 201), JSON.stringify(codes));
+        check("registration past the limit -> 429", codes[REGISTER_MAX] === 429, JSON.stringify(codes));
+    });
 }
 
 (async () => {
