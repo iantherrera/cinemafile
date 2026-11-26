@@ -21,10 +21,17 @@ function getCollection(res) {
     return db.collection(COLLECTION);
 }
 
+// Mongo document ids are 24 hex characters. Matching that form directly rather
+// than calling ObjectId.isValid is deliberate: isValid's treatment of other
+// shapes changed across driver versions. v4 accepted a 12-character string and
+// quietly reinterpreted its bytes as a different id, while v6 rejects it. An
+// explicit check behaves identically on both and never guesses.
+const OBJECT_ID = /^[0-9a-fA-F]{24}$/;
+
 // Returns an ObjectId, or null after responding 400. A bare ObjectId() on
 // arbitrary input throws, which previously crashed the request.
 function parseId(req, res) {
-    if (!ObjectId.isValid(req.params.id)) {
+    if (!OBJECT_ID.test(req.params.id)) {
         res.status(400).json({ error: "Invalid user id" });
         return null;
     }
