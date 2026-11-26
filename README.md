@@ -2,42 +2,114 @@
 
 by Ian Herrera
 
-11/17
+A full-stack React application for keeping your own copy of the AFI top 100 films — mark what you have seen, flag favourites, drop the ones you will never watch, and reset to the original list whenever you like. Each account keeps its own list.
 
-[Project Notes & Wireframes](https://drive.google.com/file/d/194O0oHOlF9V_1GsRv403Ydp8lIth-PZk/view?usp=sharing)
+[Project Notes & Wireframes](https://drive.google.com/file/d/194O0oHOlF9V_1GsRv403Ydp8lIth-PZk/view?usp=sharing) · [Video demo](https://youtu.be/ykbVYPiow3U) (the original capstone submission, before accounts were added)
 
-#### Video Demo:  <https://youtu.be/ykbVYPiow3U>
+---
+
+## Running it locally
+
+### Prerequisites
+
+- **Node 22.12 or newer** — Vite 8 and Vitest 5 both require it. Developed against 26.13.1.
+- A free **MongoDB Atlas** cluster.
+
+### 1. Create the database
+
+In [Atlas](https://cloud.mongodb.com): **Create** → **Free**, pick a provider and region, name it, **Create**. In the Security Quickstart that follows, add a database user and add your current IP to the access list.
+
+Then **Connect** → **Drivers** → **Node.js** and copy the connection string. It looks like:
+
+```
+mongodb+srv://<db_username>:<db_password>@<cluster>.mongodb.net/
+```
+
+Replace both placeholders, brackets included. Percent-encode any special characters in the password (`@` → `%40`). You do not need a database name in the string — the app uses `cinefile` and creates it on first write.
+
+### 2. Configure the server
+
+```bash
+cd server
+cp config.env.example config.env
+```
+
+Fill in `ATLAS_URI` with the string above, and generate a session secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+`config.env` is gitignored. Every setting is documented in `config.env.example`; only `ATLAS_URI` is strictly required, though without `SESSION_SECRET` a temporary one is generated and everyone is signed out on each restart.
+
+### 3. Install and run
+
+From the repository root, in two terminals:
+
+```bash
+# terminal 1 — API on :5000
+cd server
+npm install
+npm start
+```
+
+```bash
+# terminal 2 — app on :3000
+cd client
+npm install
+npm run dev
+```
+
+Open <http://localhost:3000> and register. New accounts start with the full AFI list.
+
+The server logs `Connected to MongoDB database "cinefile".` on success. If it reports `DATABASE UNAVAILABLE` instead, the line below names the cause: a hostname that does not resolve, rejected credentials, or — most often — an IP that is not on the Atlas access list.
+
+---
+
+## Tests
+
+```bash
+cd server && npm test   # 62 integration tests
+cd client && npm test   # 26 component tests
+```
+
+The server tests run against a real `mongod`, started by `mongodb-memory-server` and thrown away afterwards. They use the real driver, the real database module and the same Express app the server builds, so they exercise actual behaviour rather than stubs — including that credentials never leave the database, that one account cannot read another's list, and that logout invalidates the session server-side.
+
+The client tests use Vitest and Testing Library against jsdom, mocking the API module so they test what the components do rather than re-testing the wire.
+
+---
+
+## How it is built
+
+**Client** — React 18 with React Router, built by Vite. `AuthContext` owns the session and is restored on load from `/auth/me`; route guards hold rendering until that check resolves rather than guessing. `MovieCards` owns the list and passes handlers down; every update builds a new array, so React re-renders and the UI always reflects state. Gallery and list views are driven by one piece of state and CSS, with no direct DOM manipulation.
+
+**Server** — Express with session cookies. Passwords are hashed with scrypt from `node:crypto`, each with its own salt, compared in constant time; nothing stores a plaintext password. Sessions live in httpOnly cookies backed by MongoDB, so a script on the page cannot read the credential and signing out invalidates it server-side. The signed-in user's id comes from the session, never the URL. Sign-in and registration are rate limited per IP.
+
+**API**
+
+| Route | Purpose |
+| --- | --- |
+| `POST /auth/register` | Create an account, seeded with the default list |
+| `POST /auth/login` | Sign in |
+| `POST /auth/logout` | Destroy the session |
+| `GET /auth/me` | Who is signed in |
+| `GET /userData` | The signed-in user's list |
+| `POST /update` | Replace that list |
+| `POST /reset` | Restore the default list and return it |
+
+### Known limitations
+
+- **No password reset.** There is no email on accounts, so a forgotten password means a lost account.
+- Rate limiting is per-IP and in memory, so counters reset on restart and are not shared across instances.
+- `sameSite: "lax"` covers the common CSRF cases; there is no CSRF token.
+
+---
 
 ## Code Louisville Capstone Project
 
-### Project summary & main features:
+Originally submitted November 2022. The requirements it was built against:
 
-#### Full-stack React application allowing users to customize a list of the top 100 movies of all time (according to the AFI) that is persistent between sessions.
-
-- Movie cards are rendered in a scrollable, responsive flex grid with a poster graphic and other metadata fetched from external API’s.
-- Movie card gallery view is the default, but users can view data and options in a compact list.
-- Users can favorite or delete movie entries and add a check to any film that has been viewed.
-- Users can reset list to original default.
-- User data for customized movie list will be saved to an external database and persist between sessions.
-- Front-end application is developed with React and utilizes hooks, props, state, and component-based structures.
-- Back-end application utilizes a Node server built with Express.
-- Application utilizes MongoDB for data storage and retrieval.
-
-### Client Application:
-
-- MovieCard.js is the primary component for the the front-end React application, rendered by App.js. MovieCard.js contains the render template for movie cards, which takes in props from the MovieCards function. MovieCard.js contains functions providing functionality for toggling Favorites & Viewed films, deleting movie entries from the user's list, making requests to the server for updating the user's database as movie cards are edited by the user, and re-rendering the movie card components according to the updated database. The MovieCard component passes props down to the Header component, which passes props down to ViewStyleButton & ResetButton, providing feature functionality for the navigation bar. ViewStyleButton toggles movie card list between gallery style viewing to list style viewing by changing classes. ResetButton re-initializes user data with initMovieData.json and updates the user database, triggering a re-render of movie card components.
-
-### Server application:
-
-- Server.js initializes the server application and opens up a port that can be utilized for client requests. Server connection is defined by conn.js. Routes provided by userData.js enable user data retrieval and updating user data in the MongoDB database for client requests.
-
-### Future features:
-
-- Plans for future features include user registration and login. Components are currently scoped to accommodate future login and registration components. Database requests currently utilize a single hard-coded userid for accessing records, but the server requests and database schema are set up for accessing multiple user accounts containing user-specific data for each account.
-
-### PROJECT FEATURE REQUIREMENT LIST:
-
-#### SECTION 1 :
+#### SECTION 1:
 ☑  Use arrays, objects, sets or maps to store and retrieve information that is displayed in your app.
 - Arrays, objects, and maps are used to manage data, store in database, and populate movie list information rendered for each movie entry.
 
